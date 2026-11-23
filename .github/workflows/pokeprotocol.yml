@@ -82,8 +82,14 @@ jobs:
           git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
           npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
           npm run vendor
-          # Uses the upstream committed data/dex.json and data/field.json.
-          # The field is a historical snapshot; the report labels its build date.
+          # Prefer our refreshed 35-day tournament field when available.
+          # The upstream historical snapshot remains a fallback for initial setup.
+          if [ -s ../data/field-recent.json ]; then
+            cp ../data/field-recent.json data/field.json
+            echo "Using refreshed recent M-C field"
+          else
+            echo "WARNING: refreshed field not yet available; using upstream historical field"
+          fi
 
       - name: Validate teams and run the experiment
         env:
