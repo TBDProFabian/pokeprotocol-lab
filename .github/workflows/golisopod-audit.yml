@@ -1,0 +1,64 @@
+name: Mega Golisopod slot-value audit
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  compare:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL GOLISOPOD'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned simulation engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo "Need refreshed recent field" && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+      - name: Audit Mega Golisopod slot value against refreshed field
+        run: python scripts/evaluate_golisopod.py
+      - name: Upload full experiment data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golisopod-comparison-${{ github.run_id }}
+          path: reports/golisopod-audit
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish short result to Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/golisopod-audit/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/golisopod-audit/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "The audit failed before reporting. Logs: $RUN_URL"
+          fi
