@@ -15,6 +15,7 @@ const MAX_EVENTS = 160;
 const RECENT_DAYS = 35;
 const API = 'https://play.limitlesstcg.com/api';
 const CUTOFF = Date.parse('2026-09-09T02:00:00Z');
+const MC_END = Date.parse('2026-12-02T02:00:00Z');
 const now = Date.now();
 const freshThreshold = now - 6 * 3600_000; // avoid ongoing tournaments
 const recentSince = now - RECENT_DAYS * 86_400_000;
@@ -125,7 +126,7 @@ audit.listedEvents = listing.length;
 const candidates = listing.filter(e => {
   const when = Date.parse(e.date);
   const name = String(e.name || '');
-  return when >= CUTOFF && when < freshThreshold && e.players >= MIN_PLAYERS &&
+  return when >= CUTOFF && when < MC_END && when < freshThreshold && e.players >= MIN_PLAYERS &&
     !/\bm[ -]?b\b|\breg(?:ulation)?\s*b\b|\bm[ -]?d\b|\bsingles?\b/i.test(name);
 }).sort((a,b) => Date.parse(b.date) - Date.parse(a.date)).slice(0, MAX_EVENTS);
 audit.eligibleListed = candidates.length;
