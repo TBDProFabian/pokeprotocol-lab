@@ -75,6 +75,12 @@ jobs:
           git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
           cd champions-lab
           npm ci --no-audit --no-fund
+          # Upstream's calc subpackage runs a bundle step that requires Babel
+          # dependencies declared in the damage-calc repository root.
+          # Seed those dependencies before the upstream vendor script builds calc.
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
           npm run vendor
           # Uses the upstream committed data/dex.json and data/field.json.
           # The field is a historical snapshot; the report labels its build date.
