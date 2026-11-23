@@ -24,6 +24,13 @@ const reportPath = path.join(ROOT, 'data/pokeprotocol-refresh.json');
 const recentPath = path.join(ROOT, 'data/field-recent.json');
 const dex = loadDex();
 const field = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
+// Prune events explicitly identified as older regulations or singles.
+const wrongReg = /\bm[ -]?[abd]\b|\breg(?:ulation)?\s*(?:a|b|d|f|h|i)\b|\bsingles?\b/i;
+const mislabelledIds = new Set<string>((field.meta.sources || [])
+  .filter((s: any) => s.reg === 'M-C' && wrongReg.test(String(s.name || '')))
+  .map((s: any) => s.id));
+field.meta.sources = (field.meta.sources || []).filter((s: any) => !mislabelledIds.has(s.id));
+field.teams = field.teams.filter((t: any) => !mislabelledIds.has(t.eventId));
 const pastSources = new Map<string, any>((field.meta.sources || []).map((s: any) => [s.id, s]));
 const prior: Record<string, any> = field.spreadPrior || {};
 const natureById = new Map<string, any>(dex.data.natures.map((n: any) => [n.id, n]));
@@ -127,7 +134,7 @@ const candidates = listing.filter(e => {
   const when = Date.parse(e.date);
   const name = String(e.name || '');
   return when >= CUTOFF && when < MC_END && when < freshThreshold && e.players >= MIN_PLAYERS &&
-    !/\bm[ -]?b\b|\breg(?:ulation)?\s*b\b|\bm[ -]?d\b|\bsingles?\b/i.test(name);
+    !wrongReg.test(name);
 }).sort((a,b) => Date.parse(b.date) - Date.parse(a.date)).slice(0, MAX_EVENTS);
 audit.eligibleListed = candidates.length;
 const newSources: any[] = [];
