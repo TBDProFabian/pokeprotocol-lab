@@ -1,0 +1,145 @@
+{
+ "format": "gen9championsvgc2026regmc",
+ "ok": true,
+ "problems": [],
+ "team": [
+  {
+   "species": "Raichu",
+   "name": "",
+   "item": "Raichunite X",
+   "ability": "Lightning Rod",
+   "moves": [
+    "Fake Out",
+    "Volt Tackle",
+    "Volt Switch",
+    "Feint"
+   ],
+   "nature": "Jolly",
+   "evs": {
+    "hp": 30,
+    "atk": 0,
+    "def": 4,
+    "spa": 0,
+    "spd": 0,
+    "spe": 32
+   },
+   "gender": "",
+   "level": 50
+  },
+  {
+   "species": "Golisopod",
+   "name": "",
+   "item": "Golisopite",
+   "ability": "Emergency Exit",
+   "moves": [
+    "Iron Head",
+    "Leech Life",
+    "Sucker Punch",
+    "Protect"
+   ],
+   "nature": "Adamant",
+   "evs": {
+    "hp": 32,
+    "atk": 32,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 2
+   },
+   "gender": "",
+   "level": 50
+  },
+  {
+   "species": "Archaludon",
+   "name": "",
+   "item": "Leftovers",
+   "ability": "Stamina",
+   "moves": [
+    "Dragon Pulse",
+    "Electro Shot",
+    "Aura Sphere",
+    "Protect"
+   ],
+   "nature": "Calm",
+   "evs": {
+    "hp": 30,
+    "atk": 0,
+    "def": 0,
+    "spa": 1,
+    "spd": 25,
+    "spe": 10
+   },
+   "gender": "",
+   "level": 50
+  },
+  {
+   "species": "Pelipper",
+   "name": "",
+   "item": "Damp Rock",
+   "ability": "Drizzle",
+   "moves": [
+    "Weather Ball",
+    "Hurricane",
+    "Wide Guard",
+    "Tailwind"
+   ],
+   "nature": "Bold",
+   "evs": {
+    "hp": 32,
+    "atk": 0,
+    "def": 10,
+    "spa": 11,
+    "spd": 7,
+    "spe": 6
+   },
+   "gender": "",
+   "level": 50
+  },
+  {
+   "species": "Basculegion-F",
+   "name": "",
+   "item": "Focus Sash",
+   "ability": "Swift Swim",
+   "moves": [
+    "Muddy Water",
+    "Shadow Ball",
+    "Ice Beam",
+    "Protect"
+   ],
+   "nature": "Modest",
+   "evs": {
+    "hp": 1,
+    "atk": 0,
+    "def": 0,
+    "spa": 32,
+    "spd": 1,
+    "spe": 32
+   },
+   "gender": "",
+   "level": 50
+  },
+  {
+   "species": "Incineroar",
+   "name": "",
+   "item": "Sitrus Berry",
+   "ability": "Intimidate",
+   "moves": [
+    "Fake Out",
+    "Parting Shot",
+    "Flare Blitz",
+    "Snarl"
+   ],
+   "nature": "Careful",
+   "evs": {
+    "hp": 32,
+    "atk": 0,
+    "def": 14,
+    "spa": 0,
+    "spd": 20,
+    "spe": 0
+   },
+   "gender": "",
+   "level": 50
+  }
+ ]
+}

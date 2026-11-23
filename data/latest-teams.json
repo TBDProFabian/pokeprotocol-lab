@@ -1,0 +1,322 @@
+{
+ "teams": [
+  {
+   "event": "Talon's FIGHT CLUB #111 POKEMON CHAMPIONS REG M-C",
+   "date": "2026-11-20",
+   "players": 88,
+   "placing": 1,
+   "record": {
+    "wins": 11,
+    "losses": 0,
+    "ties": 0
+   },
+   "species": [
+    "Salamence",
+    "Rotom-Wash",
+    "Sinistcha",
+    "Tyranitar",
+    "Excadrill",
+    "Corviknight"
+   ],
+   "sets": [
+    {
+     "species": "Salamence",
+     "name": "",
+     "item": "Salamencite",
+     "ability": "Intimidate",
+     "moves": [
+      "Hyper Voice",
+      "Protect",
+      "Draco Meteor",
+      "Flamethrower"
+     ],
+     "nature": "Timid",
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Rotom-Wash",
+     "name": "",
+     "item": "Sitrus Berry",
+     "ability": "Levitate",
+     "moves": [
+      "Hydro Pump",
+      "Thunderbolt",
+      "Protect",
+      "Will-O-Wisp"
+     ],
+     "nature": "Bold",
+     "evs": {
+      "hp": 32,
+      "atk": 0,
+      "def": 23,
+      "spa": 1,
+      "spd": 3,
+      "spe": 7
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Sinistcha",
+     "name": "",
+     "item": "Kasib Berry",
+     "ability": "Hospitality",
+     "moves": [
+      "Matcha Gotcha",
+      "Rage Powder",
+      "Protect",
+      "Shadow Ball"
+     ],
+     "nature": "Bold",
+     "evs": {
+      "hp": 32,
+      "atk": 0,
+      "def": 14,
+      "spa": 0,
+      "spd": 20,
+      "spe": 0
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Tyranitar",
+     "name": "",
+     "item": "Tyranitarite",
+     "ability": "Sand Stream",
+     "moves": [
+      "Rock Slide",
+      "Knock Off",
+      "Protect",
+      "Low Kick"
+     ],
+     "nature": "Jolly",
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Excadrill",
+     "name": "",
+     "item": "Focus Sash",
+     "ability": "Sand Rush",
+     "moves": [
+      "Iron Head",
+      "Protect",
+      "High Horsepower",
+      "Rock Slide"
+     ],
+     "nature": "Adamant",
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Corviknight",
+     "name": "",
+     "item": "Leftovers",
+     "ability": "Mirror Armor",
+     "moves": [
+      "Brave Bird",
+      "Roost",
+      "Bulk Up",
+      "Tailwind"
+     ],
+     "nature": "Careful",
+     "evs": {
+      "hp": 32,
+      "atk": 1,
+      "def": 1,
+      "spa": 0,
+      "spd": 21,
+      "spe": 11
+     },
+     "gender": "",
+     "level": 50
+    }
+   ]
+  },
+  {
+   "event": "Team Philippines @ VRWC 2026: Tryouts #1 🇵🇭 ONLY",
+   "date": "2026-11-15",
+   "players": 73,
+   "placing": 1,
+   "record": {
+    "wins": 11,
+    "losses": 0,
+    "ties": 0
+   },
+   "species": [
+    "Froslass",
+    "Salamence",
+    "Sneasler",
+    "Volcarona",
+    "Kingambit",
+    "Basculegion"
+   ],
+   "sets": [
+    {
+     "species": "Froslass",
+     "name": "",
+     "item": "Froslassite",
+     "ability": "Cursed Body",
+     "moves": [
+      "Blizzard",
+      "Shadow Ball",
+      "Aurora Veil",
+      "Protect"
+     ],
+     "nature": "Timid",
+     "evs": {
+      "hp": 32,
+      "atk": 0,
+      "def": 0,
+      "spa": 2,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Salamence",
+     "name": "",
+     "item": "Salamencite",
+     "ability": "Intimidate",
+     "moves": [
+      "Hyper Voice",
+      "Draco Meteor",
+      "Tailwind",
+      "Protect"
+     ],
+     "nature": "Timid",
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Sneasler",
+     "name": "",
+     "item": "White Herb",
+     "ability": "Unburden",
+     "moves": [
+      "Close Combat",
+      "Gunk Shot",
+      "Fake Out",
+      "Protect"
+     ],
+     "nature": "Adamant",
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Volcarona",
+     "name": "",
+     "item": "Focus Sash",
+     "ability": "Flame Body",
+     "moves": [
+      "Struggle Bug",
+      "Overheat",
+      "Rage Powder",
+      "Protect"
+     ],
+     "nature": "Timid",
+     "evs": {
+      "hp": 29,
+      "atk": 0,
+      "def": 0,
+      "spa": 5,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Kingambit",
+     "name": "",
+     "item": "Life Orb",
+     "ability": "Defiant",
+     "moves": [
+      "Kowtow Cleave",
+      "Sucker Punch",
+      "Swords Dance",
+      "Protect"
+     ],
+     "nature": "Adamant",
+     "evs": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 1,
+      "spe": 1
+     },
+     "gender": "",
+     "level": 50
+    },
+    {
+     "species": "Basculegion",
+     "name": "",
+     "item": "Mystic Water",
+     "ability": "Adaptability",
+     "moves": [
+      "Wave Crash",
+      "Aqua Jet",
+      "Last Respects",
+      "Protect"
+     ],
+     "nature": "Adamant",
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "gender": "",
+     "level": 50
+    }
+   ]
+  }
+ ]
+}

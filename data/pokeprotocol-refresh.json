@@ -1,0 +1,143 @@
+{
+  "startedAt": "2026-11-23T20:22:51.751Z",
+  "source": "https://play.limitlesstcg.com/api",
+  "format": "gen9championsvgc2026regmc",
+  "recentDays": 35,
+  "minPlayers": 24,
+  "baselineEvents": 191,
+  "baselineTeams": 3597,
+  "attemptedEvents": 160,
+  "acceptedEvents": 154,
+  "acceptedTeams": 6780,
+  "rejectedTeams": 432,
+  "skippedEvents": [
+    {
+      "event": "6aee41fee99f3235a75e2751",
+      "reason": "no complete validated team sheets"
+    },
+    {
+      "event": "6aeb3848e94eae0f947470f6",
+      "reason": "Error: Limitless HTTP 429 at https://play.limitlesstcg.com/api/tournaments/6aeb3848e94eae0f947470f6/standings"
+    },
+    {
+      "event": "6ae7a4730d00101b48bf41c6",
+      "reason": "Error: Limitless HTTP 429 at https://play.limitlesstcg.com/api/tournaments/6ae7a4730d00101b48bf41c6/standings"
+    },
+    {
+      "event": "6ae9c340e94eae0f947464b0",
+      "reason": "Error: Limitless HTTP 429 at https://play.limitlesstcg.com/api/tournaments/6ae9c340e94eae0f947464b0/standings"
+    },
+    {
+      "event": "6adf26cc91617679e84a1234",
+      "reason": "no complete validated team sheets"
+    },
+    {
+      "event": "6ac7702585920e4d2536693d",
+      "reason": "no complete validated team sheets"
+    }
+  ],
+  "pagesScanned": 8,
+  "notes": [],
+  "listedEvents": 800,
+  "eligibleListed": 160,
+  "refreshedAt": "2026-11-23T20:28:07.715Z",
+  "latestTournamentDate": "2026-11-23",
+  "allCounts": {
+    "teams": 10377,
+    "mcTeams": 7790,
+    "mbTeams": 2587,
+    "events": 345
+  },
+  "recentCounts": {
+    "teams": 6780,
+    "mcTeams": 6780,
+    "mbTeams": 0,
+    "events": 154
+  },
+  "newestEvents": [
+    {
+      "name": "Sketch Academy Sunday Regulation M-C Tournament",
+      "date": "2026-11-23",
+      "teams": 48,
+      "players": 55,
+      "url": "https://play.limitlesstcg.com/tournament/6af1770ce99f3235a75e49ae/standings"
+    },
+    {
+      "name": "Runback Series #6 - Reg I $100 to 1st place",
+      "date": "2026-11-22",
+      "teams": 2,
+      "players": 60,
+      "url": "https://play.limitlesstcg.com/tournament/6af372b500d53a11f5b90882/standings"
+    },
+    {
+      "name": "VGC Trainer School; champions M/C #8",
+      "date": "2026-11-22",
+      "teams": 26,
+      "players": 34,
+      "url": "https://play.limitlesstcg.com/tournament/6aff4fee2b9e244e6cee5927/standings"
+    },
+    {
+      "name": "League Cup Ludoteca",
+      "date": "2026-11-22",
+      "teams": 22,
+      "players": 24,
+      "url": "https://play.limitlesstcg.com/tournament/6af50cd400d53a11f5b91a21/standings"
+    },
+    {
+      "name": "VGC Gemeinde Stuttgart Prep 🇩🇪",
+      "date": "2026-11-22",
+      "teams": 69,
+      "players": 77,
+      "url": "https://play.limitlesstcg.com/tournament/6ab2b78bf127b1b52c27fa42/standings"
+    },
+    {
+      "name": "Meta Breaker League(by BV)",
+      "date": "2026-11-22",
+      "teams": 40,
+      "players": 41,
+      "url": "https://play.limitlesstcg.com/tournament/6affab079c256f7bbd240677/standings"
+    },
+    {
+      "name": "[2026 포켓몬 월드컵] 팀코리아 선발전",
+      "date": "2026-11-22",
+      "teams": 26,
+      "players": 26,
+      "url": "https://play.limitlesstcg.com/tournament/6afaa63dee43ef7891476030/standings"
+    },
+    {
+      "name": "⛩️Chadweezy95 VGC Champions Tournament Ep 39!⛩️",
+      "date": "2026-11-21",
+      "teams": 30,
+      "players": 39,
+      "url": "https://play.limitlesstcg.com/tournament/6b00f567e0b5cca158bba21b/standings"
+    },
+    {
+      "name": "VGCJer Indigo Open 2",
+      "date": "2026-11-21",
+      "teams": 31,
+      "players": 53,
+      "url": "https://play.limitlesstcg.com/tournament/6aee3e5fe99f3235a75e2736/standings"
+    },
+    {
+      "name": "⚔️Torre Lotta Cup #4⚔️ 🏆50€ Amazon Gift Cards🏆",
+      "date": "2026-11-21",
+      "teams": 84,
+      "players": 91,
+      "url": "https://play.limitlesstcg.com/tournament/6af0acfdc931f53978d967ee/standings"
+    },
+    {
+      "name": "Champions League VGC November",
+      "date": "2026-11-21",
+      "teams": 48,
+      "players": 57,
+      "url": "https://play.limitlesstcg.com/tournament/6a7c52512b308b6067b51ef7/standings"
+    },
+    {
+      "name": "Friday Fight Night 82! $50 Prize & Team Report",
+      "date": "2026-11-20",
+      "teams": 89,
+      "players": 109,
+      "url": "https://play.limitlesstcg.com/tournament/6af7f53cb2fccaf0272d1cb8/standings"
+    }
+  ]
+}

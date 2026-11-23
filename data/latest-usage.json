@@ -1,0 +1,95 @@
+{
+ "field": "154 events",
+ "usage": [
+  {
+   "species": "Sneasler",
+   "share": 0.358,
+   "weightedShare": 0.3623,
+   "teams": 2427,
+   "megaShare": 0,
+   "winRate": 0.5048,
+   "games": 12834
+  },
+  {
+   "species": "Rillaboom",
+   "share": 0.3462,
+   "weightedShare": 0.3459,
+   "teams": 2347,
+   "megaShare": 0,
+   "winRate": 0.498,
+   "games": 12211
+  },
+  {
+   "species": "Garchomp",
+   "share": 0.2903,
+   "weightedShare": 0.2888,
+   "teams": 1968,
+   "megaShare": 0.3537,
+   "winRate": 0.4922,
+   "games": 10288
+  },
+  {
+   "species": "Incineroar",
+   "share": 0.2855,
+   "weightedShare": 0.287,
+   "teams": 1936,
+   "megaShare": 0,
+   "winRate": 0.4991,
+   "games": 10078
+  },
+  {
+   "species": "Kingambit",
+   "share": 0.2802,
+   "weightedShare": 0.2911,
+   "teams": 1900,
+   "megaShare": 0,
+   "winRate": 0.5237,
+   "games": 10218
+  },
+  {
+   "species": "Raichu",
+   "share": 0.2428,
+   "weightedShare": 0.2436,
+   "teams": 1646,
+   "megaShare": 0.9842,
+   "winRate": 0.5019,
+   "games": 8594
+  },
+  {
+   "species": "Charizard",
+   "share": 0.2252,
+   "weightedShare": 0.2295,
+   "teams": 1527,
+   "megaShare": 0.9987,
+   "winRate": 0.5124,
+   "games": 8137
+  },
+  {
+   "species": "Basculegion",
+   "share": 0.1836,
+   "weightedShare": 0.1886,
+   "teams": 1245,
+   "megaShare": 0,
+   "winRate": 0.5164,
+   "games": 6681
+  },
+  {
+   "species": "Gholdengo",
+   "share": 0.1507,
+   "weightedShare": 0.1513,
+   "teams": 1022,
+   "megaShare": 0,
+   "winRate": 0.4991,
+   "games": 5428
+  },
+  {
+   "species": "Whimsicott",
+   "share": 0.1497,
+   "weightedShare": 0.1516,
+   "teams": 1015,
+   "megaShare": 0,
+   "winRate": 0.5048,
+   "games": 5324
+  }
+ ]
+}
