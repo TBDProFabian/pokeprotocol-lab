@@ -1,0 +1,133 @@
+name: Refresh Poképrotocol tournament database
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 11 * * 1'
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: pokeprotocol-field-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: >-
+      github.event_name != 'issues' ||
+      (github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL REFRESH'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out Poképrotocol
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install the pinned, unmodified Champions Lab engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+
+      - name: Refresh from public Limitless standings and validate teams
+        run: |
+          if [ -s data/field.json ]; then
+            cp data/field.json champions-lab/data/field.json
+          fi
+          cp scripts/refresh_field.ts champions-lab/scripts/pokeprotocol-refresh.ts
+          cd champions-lab
+          node scripts/pokeprotocol-refresh.ts
+          cd ..
+          mkdir -p data
+          cp champions-lab/data/field.json data/field.json
+          cp champions-lab/data/field-recent.json data/field-recent.json
+          cp champions-lab/data/pokeprotocol-refresh.json data/pokeprotocol-refresh.json
+
+      - name: Sanity-check refreshed M-C field using Champions Lab CLI
+        run: |
+          cd champions-lab
+          cp data/field-recent.json data/field.json
+          node src/cli/lab.ts usage --limit 10 > ../data/latest-usage.json
+          node src/cli/lab.ts teams --limit 2 > ../data/latest-teams.json
+          node src/cli/lab.ts validate ../teams/incineroar.txt > ../data/validate-incineroar.json
+          node src/cli/lab.ts validate ../teams/sneasler.txt > ../data/validate-sneasler.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('incineroar','sneasler'):
+              check = json.loads((Path('../data') / f'validate-{name}.json').read_text())
+              if not check.get('ok'):
+                  raise SystemExit(f'{name} failed validation: {check.get("problems")}')
+          data=json.loads(Path('../data/pokeprotocol-refresh.json').read_text())
+          assert data['recentCounts']['mcTeams'] >= 30
+          print('Refresh validated, 35-day field has',data['recentCounts']['mcTeams'],'teams')
+          PY
+
+      - name: Commit refreshed archive, recent field and audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/field.json data/field-recent.json data/pokeprotocol-refresh.json data/latest-usage.json data/latest-teams.json data/validate-incineroar.json data/validate-sneasler.json
+          if git diff --cached --quiet; then
+            echo "Database unchanged"
+          else
+            git commit -m "Refresh Champions M-C field from Limitless (validated)"
+            git push origin HEAD:main
+          fi
+
+      - name: Upload updated field audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: field-refresh-${{ github.run_id }}
+          path: |
+            data/pokeprotocol-refresh.json
+            data/latest-usage.json
+            data/latest-teams.json
+            data/validate-*.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Post refresh status to triggering Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -f data/pokeprotocol-refresh.json ]; then
+            python3 - <<'PY' > /tmp/pokeprotocol-refresh-comment.md
+          import json
+          from pathlib import Path
+          r=json.loads(Path('data/pokeprotocol-refresh.json').read_text())
+          print('### Poképrotocol tournament database refresh')
+          print()
+          print(f"Latest imported tournament: **{r.get('latestTournamentDate','unknown')}**")
+          print(f"Validated teams imported in this pass: **{r.get('acceptedTeams',0)}** across **{r.get('acceptedEvents',0)}** events.")
+          print(f"Current 35-day simulation field: **{r.get('recentCounts',{}).get('mcTeams',0)}** teams.")
+          print('Source: public Limitless open-team sheets, validated with pinned Champions Showdown engine.')
+          print('Historical archive retained; no fabricated or unfinished teams included.')
+          print()
+          print('Check the workflow logs for commit and result status.')
+          PY
+            gh issue comment "$ISSUE_NUMBER" --body-file /tmp/pokeprotocol-refresh-comment.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Refresh failed before producing the audit. Check logs: $RUN_URL"
+          fi
