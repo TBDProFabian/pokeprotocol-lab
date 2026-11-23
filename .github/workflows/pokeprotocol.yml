@@ -1,0 +1,111 @@
+name: Poképrotocol cloud simulation
+
+on:
+  workflow_dispatch:
+    inputs:
+      battles:
+        description: 'Battles per field test (and head-to-head test when enabled)'
+        required: true
+        default: '100'
+        type: choice
+        options: ['50', '100', '300']
+      mode:
+        description: 'Compare against the field, or also directly against each other'
+        required: true
+        default: 'both'
+        type: choice
+        options: ['field', 'headtohead', 'both']
+      player:
+        description: 'Simulated player strategy: search is much slower'
+        required: true
+        default: 'heuristic'
+        type: choice
+        options: ['heuristic', 'search']
+      seed:
+        description: 'Reproducible simulation seed'
+        required: true
+        default: 'pokeprotocol-001'
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: pokeprotocol-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  simulate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL RUN'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out Poképrotocol configuration
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Parse safe experiment settings
+        id: config
+        env:
+          DISPATCH_BATTLES: ${{ inputs.battles }}
+          DISPATCH_MODE: ${{ inputs.mode }}
+          DISPATCH_PLAYER: ${{ inputs.player }}
+          DISPATCH_SEED: ${{ inputs.seed }}
+        run: python scripts/resolve_request.py
+
+      - name: Install pinned Champions Lab engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          npm run vendor
+          # Uses the upstream committed data/dex.json and data/field.json.
+          # The field is a historical snapshot; the report labels its build date.
+
+      - name: Validate teams and run the experiment
+        env:
+          POKEPROTOCOL_N: ${{ steps.config.outputs.battles }}
+          POKEPROTOCOL_MODE: ${{ steps.config.outputs.mode }}
+          POKEPROTOCOL_PLAYER: ${{ steps.config.outputs.player }}
+          POKEPROTOCOL_SEED: ${{ steps.config.outputs.seed }}
+        run: python scripts/run_experiment.py
+
+      - name: Upload experiment report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokeprotocol-report-${{ github.run_id }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Post results to triggering GitHub Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -f reports/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Simulation did not produce a report. See workflow logs: $RUN_URL"
+          fi
