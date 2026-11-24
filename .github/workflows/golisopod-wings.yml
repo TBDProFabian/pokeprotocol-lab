@@ -1,0 +1,68 @@
+name: Golisopod Rain Wings final tuning
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: pokeprotocol-golisopod-final-wings
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL WINGS'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo "Missing refreshed 35-day tournament field" && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+      - name: Validate and simulate Golisopod rebuilds
+        run: python scripts/evaluate_wings.py
+      - name: Upload full results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: goli-wings-${{ github.run_id }}
+          path: reports/golisopod-wings
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Post results on Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/golisopod-wings/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/golisopod-wings/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "No result report yet; check this run's logs: $RUN_URL"
+          fi
