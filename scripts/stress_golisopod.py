@@ -21,7 +21,8 @@ CHALLENGERS = {
     "Original baseline": ROOT / "teams" / "golisopod-current.txt"
 }
 ARCHETYPES = {
-    "LAIC rain-six proxy": ROOT / "teams" / "benchmark-laic-rain-proxy.txt",
+    "LAIC champion published-set proxy": ROOT / "teams" / "benchmark-laic-champion-published-proxy.txt",
+    "LAIC rain-six historical proxy": ROOT / "teams" / "benchmark-laic-rain-proxy.txt",
     "Gdansk sand-six proxy": ROOT / "teams" / "benchmark-gdansk-sand-proxy.txt"
 }
 FAST_FIELD = 240
@@ -167,7 +168,7 @@ def main():
         summary=["# Poképrotocol Golisopod: final corrected-preview stress audit","",
                  "**Bot simulations under the versioned weather-aware M-C preview policy. Not tournament win rates.**",
                  "All teams, complete recent tournament opponents and both six-species proxies passed Showdown legality.",
-                 "Unlike proxies, recent tournament teams reproduce registered full six-Pokémon sets.",
+                 "Unlike proxies, recent tournament teams reproduce registered full six-Pokémon sets. The LAIC champion published-set proxy reproduces known species, moves, items and natures from PokeSynergy, but infers all Stat Point spreads.",
                  "The training winner was chosen before the fresh 320-battle holdout; lookahead results are diagnostic.",
                  "", "## Ranking on fresh training seed","",
                  "| Team | Training score | Field wins/N | Field rate | Golisopod brought |",
@@ -200,7 +201,8 @@ def main():
                     "- Battle policies are bots. Even lookahead AI cannot validate predictions about human play.",
                     "- CIs overlap in small samples. Small score differences are inconclusive.",
                     "- Team-preview weather probabilities remain approximate; turn mechanics are unmodified.",
-                    "- Proxy teams reproduce registered archetypes but NOT champions' exact unreleased sets.",
+                    "- The LAIC championship proxy uses published full-team items/moves/natures, but **inferred Stat Points**; it is NOT the exact championship team.",
+                    "- Other archetype proxies are not the champions' exact unpublished sets.",
                     "- All published scores are tied to pinned M-C mechanics and the versioned preview patch.",
                     "", "## Final Showdown team", "",
                     "~~~", stringify(champion["team"]).rstrip(),"~~~",""]

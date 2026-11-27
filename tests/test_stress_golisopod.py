@@ -23,6 +23,14 @@ class StressAuditTests(unittest.TestCase):
             self.assertEqual(len(opponents),2)
             for path in opponents.values():
                 self.assertEqual(len(parse_team(path.read_text(encoding="utf8"))),6)
+    def test_laic_published_team_has_six_inferred_valid_stat_point_sets(self):
+        path=audit.ARCHETYPES["LAIC champion published-set proxy"]
+        team=parse_team(path.read_text(encoding="utf8"))
+        self.assertEqual(len(team),6)
+        self.assertIn("- Electro Shot",next(x.text for x in team if x.species=="Archaludon"))
+        self.assertIn("- Hypnosis",next(x.text for x in team if x.species=="Politoed"))
+        self.assertIn("Relaxed Nature",next(x.text for x in team if x.species=="Rillaboom"))
+
     def test_fixed_preview_patch_required(self):
         self.assertEqual(audit.FIX,"POKEPROTOCOL_WEATHER_PREVIEW_V2")
         self.assertNotEqual(audit.FAST_FIELD,audit.HOLDOUT)
