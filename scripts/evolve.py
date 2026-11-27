@@ -229,9 +229,23 @@ def run_experiment(args: argparse.Namespace) -> None:
     try:
         if not (ENGINE / "src/cli/lab.ts").exists():
             raise RuntimeError("Pinned Champions Lab engine missing. Run via cloud workflow.")
+        if args.require_weather_preview:
+            preview_source = ENGINE / "src/engine/policy/preview.ts"
+            if (not preview_source.exists() or
+                "POKEPROTOCOL_WEATHER_PREVIEW_V2" not in preview_source.read_text(encoding="utf8")):
+                raise RuntimeError("Fail closed: weather-aware preview policy was not installed")
+            policy_manifest = OUT / "weather-preview-policy.json"
+            if not policy_manifest.is_file():
+                raise RuntimeError("Fail closed: missing versioned policy manifest")
+            manifest["preview_policy"] = json.loads(policy_manifest.read_text(encoding="utf8"))
+            save_manifest()
         seed_team = parse_team(args.team.read_text(encoding="utf-8"))
         if not locked(seed_team):
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
+        incumbent_teams = [parse_team(path.read_text(encoding="utf-8"))
+                           for path in args.incumbent]
+        if any(not locked(team) for team in incumbent_teams):
+            raise ValueError("Each incumbent must preserve Mega Golisopod and six unique species")
         donors = registry(seed_team, args.donors)
         manifest["registered_donor_species"] = len(donors)
         manifest["registered_donor_sets"] = sum(map(len, donors.values()))
@@ -251,12 +265,18 @@ def run_experiment(args: argparse.Namespace) -> None:
             return valid_cache[key]
         if not valid(seed_team):
             raise RuntimeError("Seed team failed simulator legality validation")
+        for team in incumbent_teams:
+            if not valid(team):
+                raise RuntimeError("An incumbent failed simulator legality validation")
         rng = random.Random(args.seed)
         baseline = Individual(seed_team, (), "seed: current Mega Golisopod", 0)
-        history: dict[str, Individual] = {baseline.id: baseline}
-        current = [baseline]
+        incumbents = [Individual(team, (), "verified earlier candidate", 0)
+                      for team in incumbent_teams if fingerprint(team) != baseline.id]
+        starter = list({ind.id: ind for ind in [baseline, *incumbents]}.values())
+        history: dict[str, Individual] = {x.id: x for x in starter}
+        current = starter[:]
         hall: list[Individual] = []
-        elite_archive: dict[str, Individual] = {baseline.id: baseline}
+        elite_archive: dict[str, Individual] = {x.id: x for x in starter}
         scores: list[dict[str, Any]] = []
         def replenish(from_parents: list[Individual], generation: int) -> list[Individual]:
             population = list(from_parents)
@@ -277,6 +297,7 @@ def run_experiment(args: argparse.Namespace) -> None:
             if len(population) < args.population:
                 print(f"WARNING: generated {len(population)}/{args.population} legal unique candidates in gen {generation}", flush=True)
             return population
+        manifest["incumbents"] = [x.id for x in incumbents]
         current = replenish(current, 0)
         for g in range(args.generations):
             if g:
@@ -358,6 +379,7 @@ def run_experiment(args: argparse.Namespace) -> None:
                   f"- Each candidate: {args.field_games} fast-AI field games plus {args.evolved_games} games per previous-generation champion (up to two).",
                   f"- Champion selection: 75% real field, 25% evolved opponents when available; independent holdout uses {args.holdout_games} field games.",
                   f"- Registered donor species: {len(donors)}; registered sets: {sum(map(len, donors.values()))}.",
+                  f"- Validated previous winners included as competing seeds: {len(incumbents)}.",
                   f"- Source: `{args.donors}` (registered team sets); engine commit `{ENGINE_SHA[:12]}`.",
                   "- Golisopod @ Golisopite locked. Every candidate passed Showdown's M-C team legality validator.",
                   "- The evolved-opponent population is past champions only. This is **not** a fully coevolving simulated metagame yet.",
@@ -407,6 +429,8 @@ def get_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Poképrotocol legal team evolution (M-C)")
     p.add_argument("--team", type=Path, default=ROOT / "teams/golisopod-current.txt")
     p.add_argument("--donors", type=Path, default=ROOT / "data/latest-teams.json")
+    p.add_argument("--incumbent", type=Path, action="append", default=[], help="Previous legal champion to challenge baseline and seed search")
+    p.add_argument("--require-weather-preview", action="store_true", help="Refuse running with uncorrected team-preview charging math")
     p.add_argument("--generations", type=int, default=3, choices=range(1, 11))
     p.add_argument("--population", type=int, default=8, choices=range(2, 25))
     p.add_argument("--field-games", type=int, default=40, choices=range(10, 201))

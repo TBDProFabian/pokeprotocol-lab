@@ -5,6 +5,9 @@ on:
     paths:
       - 'scripts/evolve.py'
       - 'scripts/build_evolution_donors.py'
+      - 'scripts/install_weather_preview.py'
+      - 'tests/test_weather_preview.py'
+      - 'teams/golisopod-incineroar-nov27.txt'
       - 'tests/test_evolution_donors.py'
       - 'tests/test_evolve.py'
       - '.github/workflows/evolve.yml'
@@ -61,7 +64,7 @@ jobs:
           python-version: '3.12'
       - name: Syntax and offline evolutionary smoke tests
         run: |
-          python -m py_compile scripts/evolve.py scripts/build_evolution_donors.py
+          python -m py_compile scripts/evolve.py scripts/build_evolution_donors.py scripts/install_weather_preview.py
           python -m unittest discover -s tests -p 'test_*.py' -v
 
   evolve:
@@ -100,6 +103,37 @@ jobs:
           test -s data/field-recent.json || (echo 'No refreshed tournament field; refusing stale fallback' && exit 1)
           cp data/field-recent.json champions-lab/data/field.json
           test -s data/latest-teams.json || (echo 'Missing registered set donors' && exit 1)
+      - name: Install versioned weather-aware preview policy
+        run: |
+          python scripts/install_weather_preview.py --manifest reports/evolution/weather-preview-policy.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {chargeTempo,estimateWeather} from './champions-lab/src/engine/policy/preview.ts';
+          const dex = { getSpecies: () => ({abilities: {'0': 'Drought'}}) };
+          const mon = (ability, moves=[], item='', megaCapable=false) => ({
+            ability,moves,set:{item},megaCapable,species:'Charizard-Mega-Y'
+          });
+          const no = estimateWeather(dex, [mon('Pressure')], []);
+          const drizzle = estimateWeather(dex, [mon('Drizzle')], []);
+          const contested = estimateWeather(dex,[mon('Drizzle')],[mon('Sand Stream')]);
+          const sunny = estimateWeather(dex,[mon('Drought')],[]);
+          const megaSun = estimateWeather(dex,[mon('Blaze',[], '',true)],[]);
+          const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,'expected '+a+' near '+b);
+          near(no.rain,0);
+          near(drizzle.rain,0.5);
+          near(contested.rain,0.375);
+          near(sunny.sun,0.5);
+          assert.ok(megaSun.sun>0 && megaSun.sun<0.5);
+          const electro={id:'electroshot',flags:['charge']};
+          const solar={id:'solarbeam',flags:['charge']};
+          near(chargeTempo(electro,'Leftovers',no),0.45);
+          near(chargeTempo(electro,'Leftovers',drizzle),0.725);
+          near(chargeTempo(electro,'Leftovers',contested),0.65625);
+          near(chargeTempo(electro,'Power Herb',no),1);
+          near(chargeTempo(solar,'Leftovers',sunny),0.725);
+          near(chargeTempo({id:'flashcannon',flags:[]},'Leftovers',no),1);
+          console.log('Weather, competing weather, Mega weather, and Power Herb checks passed');
+          JS
       - name: Expand donor registry from the current tournament field
         run: python scripts/build_evolution_donors.py
       - name: Evolve legal Golisopod teams
@@ -109,7 +143,10 @@ jobs:
             --population "$EVOLVE_POPULATION" \
             --field-games "$EVOLVE_FIELD_GAMES" \
             --seed "$EVOLVE_SEED" \
-            --donors data/evolution-donors.json
+            --donors data/evolution-donors.json \
+            --incumbent teams/golisopod-incineroar-nov27.txt \
+            --incumbent teams/evolution-best-nov27.txt \
+            --require-weather-preview
       - name: Upload report, all candidates, lineage, and winner
         if: always()
         uses: actions/upload-artifact@v4
