@@ -256,6 +256,7 @@ def run_experiment(args: argparse.Namespace) -> None:
         history: dict[str, Individual] = {baseline.id: baseline}
         current = [baseline]
         hall: list[Individual] = []
+        elite_archive: dict[str, Individual] = {baseline.id: baseline}
         scores: list[dict[str, Any]] = []
         def replenish(from_parents: list[Individual], generation: int) -> list[Individual]:
             population = list(from_parents)
@@ -305,6 +306,10 @@ def run_experiment(args: argparse.Namespace) -> None:
             current.sort(key=lambda x: x.score if x.score is not None else -1, reverse=True)
             winning = current[0]
             hall.append(winning)
+            # Preserve distinct elites from every generation; do not discard past winners.
+            for elite in current[:2]:
+                elite_archive[elite.id] = elite
+                history[elite.id] = elite
             history[winning.id] = winning
             scores.append({"generation": g, "best_id": winning.id,
                            "best_selection_score": winning.score, "cohort": cohort})
@@ -313,8 +318,25 @@ def run_experiment(args: argparse.Namespace) -> None:
             manifest["last_champion"] = winning.id
             save_manifest()
 
-        # Reserved holdout seed. Champion chosen on training results, NOT by holdout ranking.
-        shortlisted = {x.id: x for x in [baseline, *hall, *current[:3]]}
+        # Generation-specific training scores use different field seeds and evolving
+        # opponents, so they are NOT comparable across generations. Re-rank a
+        # bounded set of global elites and baseline on one new common seed.
+        # This is part of model selection, NEVER the independent holdout.
+        shortlisted = {x.id: x for x in [baseline, *elite_archive.values(), *hall, *current[:3]]}
+        promotion = []
+        for x in shortlisted.values():
+            r = run_cli("field", materialize(x.team), "--n", args.promotion_games,
+                        "--player", "heuristic", "--seed", f"{args.seed}|PROMOTION-2026")
+            w = checked_rate(r, "winRate", args.promotion_games)
+            promotion.append({"id": x.id, "rate": w["rate"], "wins": w.get("wins"),
+                              "losses": w.get("losses"), "ties": w.get("ties"),
+                              "n": w["n"], "ci95": w.get("ci95"),
+                              "species": [p.species for p in x.team]})
+        promotion.sort(key=lambda d: (-d["rate"], d["id"]))
+        winner = shortlisted[promotion[0]["id"]]
+        (OUT / "promotion.json").write_text(json.dumps(promotion, indent=2), encoding="utf-8")
+        # Independent holdout seed. Winner is now frozen and cannot be changed
+        # using any result from the holdout. Holdout comparisons are diagnostic.
         validation = []
         for x in shortlisted.values():
             r = run_cli("field", materialize(x.team), "--n", args.holdout_games,
@@ -324,7 +346,6 @@ def run_experiment(args: argparse.Namespace) -> None:
                                "ties": w.get("ties"), "n": w["n"], "ci95": w.get("ci95"),
                                "species": [p.species for p in x.team]})
         validation.sort(key=lambda d: d["rate"], reverse=True)
-        winner = current[0]
         winner_result = next(v for v in validation if v["id"] == winner.id)
         (OUT / "best.txt").write_text(stringify(winner.team), encoding="utf-8")
         (OUT / "baseline.txt").write_text(stringify(seed_team), encoding="utf-8")
@@ -340,7 +361,8 @@ def run_experiment(args: argparse.Namespace) -> None:
                   f"- Source: `{args.donors}` (registered team sets); engine commit `{ENGINE_SHA[:12]}`.",
                   "- Golisopod @ Golisopite locked. Every candidate passed Showdown's M-C team legality validator.",
                   "- The evolved-opponent population is past champions only. This is **not** a fully coevolving simulated metagame yet.",
-                  "- Winning team selected in the final generation *before* examining holdout results. Other holdout rows are diagnostic only.",
+                  f"- Global promotion stage: {len(promotion)} unique previous elites and current finalists compared on {args.promotion_games} games using one reserved common field seed.",
+                  "- Final champion selected from all generations *before* examining holdout results. Other holdout rows are diagnostic only.",
                   "", "## Independent holdout", "",
                   "| Team | Rate | Wins/N | 95% CI | Six Pokémon |", "|---|---:|---:|---|---|"]
         for v in validation:
@@ -349,6 +371,10 @@ def run_experiment(args: argparse.Namespace) -> None:
             mark = " **(original)**" if v["id"] == baseline.id else ""
             report.append(f"| `{v['id']}`{mark} | {v['rate']:.1%} | {v['wins']}/{v['n']} | {interval} | {', '.join(v['species'])} |")
         report += ["", f"**Selected champion:** `{winner.id}` ({winner_result['rate']:.1%} held-out); baseline `{baseline.id}` ({baseline_result['rate']:.1%}).",
+                   "", "## Global promotion round (pre-holdout)", "",
+                   "| ID | Wins/N | Promotion rate |", "|---|---:|---:|"]
+        for row in promotion:
+            report.append(f"| `{row['id']}` | {row['wins']}/{row['n']} | {row['rate']:.1%} |")
                    "", "## Generational champions", "",
                    "| Generation | Team ID | Selection score |", "|---:|---|---:|"]
         for rec in scores:
@@ -359,6 +385,9 @@ def run_experiment(args: argparse.Namespace) -> None:
                    "## Best Showdown paste", "", "```", stringify(winner.team).rstrip(), "```", ""]
         (OUT / "summary.md").write_text("\n".join(report), encoding="utf-8")
         manifest.update({"status": "completed", "best_team": winner.id,
+                         "global_promotion_winner": winner.id,
+                         "promotion_candidates": len(promotion),
+                         "promotion_games": args.promotion_games,
                          "baseline_holdout_rate": baseline_result["rate"],
                          "best_holdout_rate": winner_result["rate"],
                          "completed_at": datetime.now(timezone.utc).isoformat()})
@@ -382,6 +411,7 @@ def get_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--population", type=int, default=8, choices=range(2, 25))
     p.add_argument("--field-games", type=int, default=40, choices=range(10, 201))
     p.add_argument("--evolved-games", type=int, default=16, choices=range(4, 101))
+    p.add_argument("--promotion-games", type=int, default=160, choices=range(40, 501))
     p.add_argument("--holdout-games", type=int, default=200, choices=range(40, 501))
     p.add_argument("--seed", default="golisopod-evolve-v1")
     return p.parse_args(argv)
