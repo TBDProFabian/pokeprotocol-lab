@@ -1,6 +1,6 @@
 # Poképrotocol Evolution Engine V1 🧬
 
-**Status:** Experimental M-C optimizer built on the existing Champions Lab engine. It does not control the Pokémon Champions game and does not make human tournament win-rate claims.
+**Status:** Experimental M-C optimizer built on the existing Champions Lab engine with a versioned weather-aware preview policy patch. It does not control the Pokémon Champions game and does not make human tournament win-rate claims.
 
 ## One-button launch from a phone
 
@@ -10,13 +10,14 @@ The simulator and tournament field run in GitHub Actions, not on your phone. Job
 
 ## The algorithm
 
-1. Start with `teams/golisopod-current.txt`. **Golisopod @ Golisopite is fixed as slot 1**. Its supporting five may change.
-2. Load registered full sets from `data/latest-teams.json` plus the existing seed sets. Generate mutations: a different registered species and whole set, an alternative set for the same species, one registered move, an item, or a correlated nature/stat spread. Occasional crossover uses a complete set from another elite parent. These are recombinations of real components, not arbitrary new move or item inventions.
-3. Require six unique species and run the pinned Showdown M-C `validate` command on **every generated candidate**. Rejected mutations are never battled. If viable mutations are scarce, the generation may have fewer than the requested number of candidates.
-4. Fight each legal candidate with `heuristic` AI versus the same fixed tournament-derived field and seed (per generation). From generation 2 onward, also fight up to two successful prior-generation teams. Score **75% tournament field / 25% evolved challengers**, or 100% field when no challengers are available.
-5. Keep the leading two parents and mutate/crossover their descendants. Track ancestry and fitness per generation. Repeat.
-6. **Run a global promotion round.** Compare the baseline and the strongest candidates from every generation on the same additional 160-game tournament-field seed. This is a *selection* dataset and cannot count as independent validation; it prevents the last generation's lucky training score from discarding earlier stronger teams.
-7. **Freeze the selected champion before holdout evaluation.** Re-test the selected team, baseline, previous champions and finalists on a separately held-out 200-game field seed. Report rate, wins, sample count and confidence interval. Never choose the champion from holdout rankings.
+1. Start with `teams/golisopod-current.txt` plus the previously validated Incineroar and Tyranitar contenders. **Golisopod @ Golisopite is fixed as slot 1**. Its supporting five may change.
+2. Install the explicitly versioned weather-aware preview valuation patch. The pinned upstream preview treated Electro Shot's 130 BP as instant damage even when rain was absent; our patch approximates charging tempo based on available weather setters in the proposed four-v-four, with competing weather and Power Herb handled. This is a heuristic preview improvement, not a replacement for actual battle mechanics.
+3. Load registered full sets from `data/latest-teams.json` plus the existing seed sets. Generate mutations: a different registered species and whole set, an alternative set for the same species, one registered move, an item, or a correlated nature/stat spread. Occasional crossover uses a complete set from another elite parent. These are recombinations of real components, not arbitrary new move or item inventions.
+4. Require six unique species and run the pinned Showdown M-C `validate` command on **every generated candidate**. Rejected mutations are never battled. If viable mutations are scarce, the generation may have fewer than the requested number of candidates.
+5. Fight each legal candidate with `heuristic` AI versus the same fixed tournament-derived field and seed (per generation). From generation 2 onward, also fight up to two successful prior-generation teams. Score **75% tournament field / 25% evolved challengers**, or 100% field when no challengers are available.
+6. Keep the leading two parents and mutate/crossover their descendants. Track ancestry and fitness per generation. Repeat.
+7. **Run a global promotion round.** Compare the baseline and the strongest candidates from every generation on the same additional 160-game tournament-field seed. This is a *selection* dataset and cannot count as independent validation; it prevents the last generation's lucky training score from discarding earlier stronger teams.
+8. **Freeze the selected champion before holdout evaluation.** Re-test the selected team, baseline, previous champions and finalists on a separately held-out 200-game field seed. Report rate, wins, sample count and confidence interval. Never choose the champion from holdout rankings.
 
 ## Limitations
 
@@ -24,6 +25,7 @@ The simulator and tournament field run in GitHub Actions, not on your phone. Job
 - The opponent field represents available open team sheets, not a census of the metagame. Stat Points absent from open sheets may be inferred.
 - Evolved opposition in V1 is previous champions, **not** a full 2,048-team coevolving metagame. The champion population is a small stress layer, not a replacement for real teams.
 - The workflow builds `data/evolution-donors.json` from the pinned recent tournament field before each run, supplementing the seed team. It requires multiple registered Archaludon sets and still cannot cover every legal combination.
+- Weather probability in team preview is an approximation based on likely weather setters in selected fours, not true observed leads or switch order. It does not fully model weather-adjusted attack damage. Stronger weather-specific tests remain necessary.
 - Fast `heuristic` AI can be exploited. Search-AI and real-player verification remain essential. A lucky result in a 40-game sample is not proof of superiority.
 - Selection is noisy, even with 160 extra promotion games per finalist. A single final holdout test checks generalization only partially. Report uncertainty, avoid claiming statistically established improvement, and use several seeds/real matches before switching a tournament team.
 - Generation reports are stored in **workflow artifacts** (30-day retention). The repository's current baseline set is not automatically overwritten.
@@ -43,3 +45,6 @@ The unit tests run without downloading the simulator. For actual battles, use th
 - Evaluate adversarial counter-pools and multiple AI policies rather than one heuristic policy.
 - Persist champions across workflows and resume from checkpoints.
 - Increase search width/battles only after establishing a reliable small-scale signal.
+## Weather policy provenance
+
+`reports/evolution/weather-preview-policy.json` stores the source and patched code SHA256 hashes alongside the pinned simulator commit. GitHub Actions fails closed if the patch was not installed. Its unit test covers no weather, one Drizzle, contested Drizzle/Sand Stream, Mega Drought, Solar Beam, and Power Herb. All candidate sets are still checked by Showdown's validator. Results before and after this policy change are **not** directly comparable as though they were obtained under one fixed simulator policy.
