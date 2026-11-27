@@ -375,7 +375,7 @@ def run_experiment(args: argparse.Namespace) -> None:
                    "| ID | Wins/N | Promotion rate |", "|---|---:|---:|"]
         for row in promotion:
             report.append(f"| `{row['id']}` | {row['wins']}/{row['n']} | {row['rate']:.1%} |")
-                   "", "## Generational champions", "",
+        report += ["", "## Generational champions", "",
                    "| Generation | Team ID | Selection score |", "|---:|---|---:|"]
         for rec in scores:
             report.append(f"| {rec['generation']+1} | `{rec['best_id']}` | {rec['best_selection_score']:.1%} |")
