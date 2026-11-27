@@ -1,0 +1,128 @@
+name: Poképrotocol Evolution Engine V1
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/evolve.py'
+      - 'tests/test_evolve.py'
+      - '.github/workflows/evolve.yml'
+  workflow_dispatch:
+    inputs:
+      generations:
+        description: 'Generations to evolve'
+        required: true
+        type: choice
+        default: '3'
+        options: ['2', '3', '5']
+      population:
+        description: 'Legal team candidates per generation'
+        required: true
+        type: choice
+        default: '8'
+        options: ['6', '8', '12']
+      field_games:
+        description: 'Games per candidate versus real tournament field'
+        required: true
+        type: choice
+        default: '40'
+        options: ['20', '40', '80']
+      seed:
+        description: 'Reproducible seed'
+        required: true
+        default: 'golisopod-evolve-v1'
+        type: string
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: evolution-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL EVOLVE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax and offline evolutionary smoke tests
+        run: |
+          python -m py_compile scripts/evolve.py
+          python -m unittest discover -s tests -p 'test_evolve.py' -v
+
+  evolve:
+    needs: tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL EVOLVE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EVOLVE_GENERATIONS: ${{ inputs.generations || '3' }}
+      EVOLVE_POPULATION: ${{ inputs.population || '8' }}
+      EVOLVE_FIELD_GAMES: ${{ inputs.field_games || '40' }}
+      EVOLVE_SEED: ${{ inputs.seed || 'golisopod-evolve-v1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install and pin Champions Lab simulator
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo 'No refreshed tournament field; refusing stale fallback' && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+          test -s data/latest-teams.json || (echo 'Missing registered set donors' && exit 1)
+      - name: Evolve legal Golisopod teams
+        run: |
+          python scripts/evolve.py \
+            --generations "$EVOLVE_GENERATIONS" \
+            --population "$EVOLVE_POPULATION" \
+            --field-games "$EVOLVE_FIELD_GAMES" \
+            --seed "$EVOLVE_SEED"
+      - name: Upload report, all candidates, lineage, and winner
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evolution-${{ github.run_id }}
+          path: reports/evolution/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Comment results on triggering Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/evolution/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/evolution/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Evolution did not finish. See the logs: $RUN_URL"
+          fi
