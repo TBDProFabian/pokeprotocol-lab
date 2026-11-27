@@ -101,6 +101,65 @@ class GeneticsTests(unittest.TestCase):
             self.assertTrue(evolve.locked(evolve.parse_team((fake_out / "best.txt").read_text())))
             self.assertIn("Independent holdout", report)
             self.assertTrue((fake_out / "lineage.json").exists())
+            self.assertTrue((fake_out / "promotion.json").exists())
+            self.assertIn("Global promotion round", report)
+            self.assertEqual(manifest["global_promotion_winner"], manifest["best_team"])
+
+
+    def test_global_promotion_may_keep_baseline_despite_lucky_last_generation(self):
+        """Final selection must use the fixed promotion field, not last gen or holdout."""
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            teamfile = root / "team.txt"
+            teamfile.write_text(evolve.stringify(self.seed), encoding="utf-8")
+            donorsfile = root / "donors.json"
+            names = ["Corviknight", "Tyranitar", "Excadrill", "Raichu", "Kingambit", "Metagross"]
+            recorded = [
+                {"species": name, "item": "Sitrus Berry", "ability": "Pressure",
+                 "nature": "Adamant", "moves": ["Protect", "Helping Hand", "Tackle", "Quick Attack"],
+                 "evs": {"hp": 2, "atk": 32, "spe": 32}}
+                for name in names + self.species[1:]
+            ]
+            donorsfile.write_text(json.dumps({"teams": [{"sets": recorded}]}), encoding="utf8")
+            (root / "engine/src/cli").mkdir(parents=True)
+            (root / "engine/src/cli/lab.ts").write_text("stub", encoding="utf8")
+            fake_out = root / "reports/evolution"
+
+            def fake_cli(command, team, *arguments):
+                current = evolve.parse_team(Path(team).read_text())
+                if command == "validate":
+                    return {"ok": evolve.locked(current)}
+                n = int(arguments[arguments.index("--n") + 1])
+                seed = arguments[arguments.index("--seed") + 1]
+                baseline = current == self.seed
+                if "PROMOTION" in seed:
+                    rate = 0.9 if baseline else 0.1
+                elif "HOLDOUT" in seed:
+                    rate = 0.1 if baseline else 0.9
+                else:
+                    rate = 0.4 if baseline else 0.8
+                wins = round(rate*n)
+                return {("winRateA" if command == "sim" else "winRate"): {
+                    "rate": rate, "wins": wins, "losses": n-wins, "ties": 0,
+                    "n": n, "ci95": [0,1]}}
+
+            args = evolve.get_args([
+                "--team", str(teamfile), "--donors", str(donorsfile),
+                "--population", "4", "--generations", "2",
+                "--field-games", "10", "--evolved-games", "4",
+                "--promotion-games", "40", "--holdout-games", "40", "--seed", "regression"])
+            with patch.object(evolve, "ENGINE", root / "engine"), \
+                 patch.object(evolve, "OUT", fake_out), \
+                 patch.object(evolve, "run_cli", fake_cli):
+                evolve.run_experiment(args)
+
+            manifest = json.loads((fake_out / "manifest.json").read_text())
+            self.assertEqual(manifest["best_team"], evolve.fingerprint(self.seed))
+            promotion = json.loads((fake_out / "promotion.json").read_text())
+            self.assertEqual(promotion[0]["id"], evolve.fingerprint(self.seed))
+            holdout = json.loads((fake_out / "holdout.json").read_text())
+            self.assertTrue(any(x["rate"] == 0.9 for x in holdout))
+            self.assertEqual(manifest["best_holdout_rate"], 0.1)
 
 
 if __name__ == "__main__":
