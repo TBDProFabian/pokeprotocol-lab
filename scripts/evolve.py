@@ -229,6 +229,16 @@ def run_experiment(args: argparse.Namespace) -> None:
     try:
         if not (ENGINE / "src/cli/lab.ts").exists():
             raise RuntimeError("Pinned Champions Lab engine missing. Run via cloud workflow.")
+        if args.require_weather_preview:
+            preview_source = ENGINE / "src/engine/policy/preview.ts"
+            if (not preview_source.exists() or
+                "POKEPROTOCOL_WEATHER_PREVIEW_V2" not in preview_source.read_text(encoding="utf8")):
+                raise RuntimeError("Fail closed: weather-aware preview policy was not installed")
+            policy_manifest = OUT / "weather-preview-policy.json"
+            if not policy_manifest.is_file():
+                raise RuntimeError("Fail closed: missing versioned policy manifest")
+            manifest["preview_policy"] = json.loads(policy_manifest.read_text(encoding="utf8"))
+            save_manifest()
         seed_team = parse_team(args.team.read_text(encoding="utf-8"))
         if not locked(seed_team):
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
@@ -420,6 +430,7 @@ def get_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--team", type=Path, default=ROOT / "teams/golisopod-current.txt")
     p.add_argument("--donors", type=Path, default=ROOT / "data/latest-teams.json")
     p.add_argument("--incumbent", type=Path, action="append", default=[], help="Previous legal champion to challenge baseline and seed search")
+    p.add_argument("--require-weather-preview", action="store_true", help="Refuse running with uncorrected team-preview charging math")
     p.add_argument("--generations", type=int, default=3, choices=range(1, 11))
     p.add_argument("--population", type=int, default=8, choices=range(2, 25))
     p.add_argument("--field-games", type=int, default=40, choices=range(10, 201))
