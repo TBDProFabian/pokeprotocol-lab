@@ -1,0 +1,102 @@
+name: Poképrotocol Electro Shot diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_electroshot.py'
+      - 'teams/evolution-best-nov27.txt'
+      - '.github/workflows/electroshot-audit.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: electroshot-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  syntax:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL ELECTROSHOT'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile audit script and verify archived winner
+        run: |
+          python -m py_compile scripts/audit_electroshot.py
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path.cwd() / 'scripts'))
+          from evolve import parse_team, locked
+          team = parse_team(Path('teams/evolution-best-nov27.txt').read_text())
+          assert locked(team)
+          assert next(p for p in team if p.species == 'Archaludon').item == 'Leftovers'
+          print('Archived evolution winner: Golisopod lock intact, Archaludon present')
+          PY
+
+  ablation:
+    needs: syntax
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL ELECTROSHOT'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned M-C Champions Lab engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo "Refusing missing field" && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+      - name: Compare Electro Shot with legal alternatives and weather contexts
+        run: python scripts/audit_electroshot.py
+      - name: Upload raw simulation and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electroshot-audit-${{ github.run_id }}
+          path: reports/electroshot-audit/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Post audit to triggering Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/electroshot-audit/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/electroshot-audit/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Audit did not complete; see $RUN_URL"
+          fi
