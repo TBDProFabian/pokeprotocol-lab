@@ -62,7 +62,7 @@ jobs:
       - name: Syntax and offline evolutionary smoke tests
         run: |
           python -m py_compile scripts/evolve.py scripts/build_evolution_donors.py
-          python -m unittest discover -s tests -p 'test_evolve*.py' -v
+          python -m unittest discover -s tests -p 'test_*.py' -v
 
   evolve:
     needs: tests
