@@ -6,7 +6,7 @@ from evolve import parse_team
 from check_golisopod_synergy import problems,warnings
 
 ROOT=Path(__file__).resolve().parents[1]
-base=(ROOT/"teams/golisopod-current.txt").read_text(encoding="utf8")
+base=(ROOT/"teams/golisopod-sash-hypervoice-baseline.txt").read_text(encoding="utf8")
 
 def set_salamence(text,item="Sitrus Berry",move="Heat Wave"):
     from evolve import stringify,SetBlock
@@ -23,6 +23,11 @@ def set_salamence(text,item="Sitrus Berry",move="Heat Wave"):
 old=set_salamence(base,"Focus Sash","Hyper Voice")
 
 class TeamQuality(unittest.TestCase):
+    def test_current_primary_team_has_no_mega_carryovers(self):
+        team=parse_team((ROOT/"teams/golisopod-current.txt").read_text(encoding="utf8"))
+        self.assertEqual(problems(team),[])
+        self.assertEqual(warnings(team),[])
+
     def test_detect_both_carryovers(self):
         issues=warnings(parse_team(old))
         self.assertTrue(any("Aerilate" in i for i in issues))
