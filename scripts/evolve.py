@@ -78,7 +78,7 @@ def exclusive_mega_golisopod(team: tuple[SetBlock, ...]) -> bool:
     if not locked(team):
         return False
     def mega_stone(item: str) -> bool:
-        return bool(re.search(r"ite(?:\s+[XYZ])?$", item, flags=re.IGNORECASE))
+        return item.casefold() != "eviolite" and bool(re.search(r"ite(?:\s+[XYZ])?$", item, flags=re.IGNORECASE))
     return sum(mega_stone(p.item) for p in team) == 1
 
 
