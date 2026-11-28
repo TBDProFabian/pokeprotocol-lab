@@ -3,7 +3,7 @@ import sys,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from evolve import parse_team
-from check_golisopod_synergy import problems
+from check_golisopod_synergy import problems,warnings
 
 ROOT=Path(__file__).resolve().parents[1]
 base=(ROOT/"teams/golisopod-current.txt").read_text(encoding="utf8")
@@ -24,19 +24,20 @@ old=set_salamence(base,"Focus Sash","Hyper Voice")
 
 class TeamQuality(unittest.TestCase):
     def test_detect_both_carryovers(self):
-        issues=problems(parse_team(old))
+        issues=warnings(parse_team(old))
         self.assertTrue(any("Aerilate" in i for i in issues))
         self.assertTrue(any("Focus Sash" in i for i in issues))
     def test_repaired_base_salamence_passes(self):
         for item in ("Sitrus Berry","Haban Berry"):
             for move in ("Air Slash","Heat Wave"):
+                self.assertEqual(warnings(parse_team(set_salamence(old,item,move))),[])
                 self.assertEqual(problems(parse_team(set_salamence(old,item,move))),[])
     def test_still_blocks_mega_salamence(self):
         x=set_salamence(old,"Salamencite","Heat Wave")
         self.assertTrue(any("only Mega Stone" in i for i in problems(parse_team(x))))
     def test_no_sand_removes_sash_conflict(self):
         x=old.replace("Ability: Sand Stream","Ability: Unnerve")
-        issues=problems(parse_team(x))
+        issues=warnings(parse_team(x))
         self.assertFalse(any("Focus Sash" in i for i in issues))
 
 if __name__=="__main__":
