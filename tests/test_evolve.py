@@ -44,6 +44,16 @@ class GeneticsTests(unittest.TestCase):
         record["evs"]["hp"] = 40
         self.assertIsNone(evolve.registered_set(record))
 
+    def test_mega_golisopod_exclusivity_rejects_partner_stones(self):
+        candidates=list(self.seed)
+        self.assertFalse(evolve.exclusive_mega_golisopod(tuple(candidates)))
+        candidates[1]=evolve.SetBlock(fake_set("Salamence","Focus Sash"))
+        self.assertTrue(evolve.exclusive_mega_golisopod(tuple(candidates)))
+        for extra_item in ("Tyranitarite","Raichunite X","Garchompite Z"):
+            adjusted=list(candidates)
+            adjusted[2]=evolve.SetBlock(fake_set("Rillaboom",extra_item))
+            self.assertFalse(evolve.exclusive_mega_golisopod(tuple(adjusted)))
+
     def test_many_mutations_keep_anchor_intact(self):
         extra = ["Corviknight", "Tyranitar", "Excadrill", "Raichu"]
         pool = {s: [b, evolve.SetBlock(fake_set(s, b.item, 1))] for s, b in zip(self.species, self.seed)}
