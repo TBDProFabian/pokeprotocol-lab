@@ -147,7 +147,8 @@ jobs:
             --seed "$EVOLVE_SEED" \
             --donors data/evolution-donors.json \
             --require-weather-preview \
-            --only-mega-golisopod
+            --only-mega-golisopod \
+            --exclude-species Salamence
       - name: Upload report, all candidates, lineage, and winner
         if: always()
         uses: actions/upload-artifact@v4
