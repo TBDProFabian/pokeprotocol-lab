@@ -32,7 +32,7 @@ class TeamQuality(unittest.TestCase):
             for move in ("Air Slash","Heat Wave"):
                 self.assertEqual(problems(parse_team(set_salamence(old,item,move))),[])
     def test_still_blocks_mega_salamence(self):
-        x=set_salamence(old).replace("Salamence @ Focus Sash","Salamence @ Salamencite")
+        x=set_salamence(old,"Salamencite","Heat Wave")
         self.assertTrue(any("only Mega Stone" in i for i in problems(parse_team(x))))
     def test_no_sand_removes_sash_conflict(self):
         x=old.replace("Ability: Sand Stream","Ability: Unnerve")
