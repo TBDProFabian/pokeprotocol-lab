@@ -21,10 +21,14 @@ The `Refresh Poképrotocol tournament database` workflow updates the field weekl
 
 The database records **public, anonymized tournament registrations** and *inferred* Stat Point spreads when an open team sheet omits them; the data is not a census of every official event or guaranteed to represent the entire metagame.
 
-## Current Golisopod team (November 23)
+## Current primary Mega Golisopod team (November 28, 2026)
 
-**[Mega Golisopod Rain Wings: Showdown paste](teams/golisopod-current.txt)** · **[Build rationale, matchup and speed notes](teams/golisopod-current-notes.md)**
+**[Showdown paste](teams/golisopod-current.txt)** · **[Independent holdout and matchup audit](teams/golisopod-current-notes.md)**
 
-Poképrotocol's latest verified M-C test version is **Golisopod / Mega Salamence / Rillaboom / Pelipper / Archaludon (Aura Sphere + Dragon Pulse) / Basculegion-F**. It uses one Mega Evolution per battle, with Golisopod as the principal option and Salamence as a matchup-dependent alternative.
+The primary M-C roster is **Mega Golisopod / Corviknight / Tyranitar / Basculegion / Archaludon / Rillaboom**. Golisopite is the **only Mega Stone**; Salamence is excluded from the primary evolution search.
 
-The [final tuning test](https://github.com/TBDProFabian/pokeprotocol-lab/issues/9) recorded **111 wins in 200 heuristic field simulations (55.5%)** for the Aura Sphere version. Its Latin America International winning-six *proxy* remains a difficult matchup, so the team is not assumed universally superior. M-D legality and matchups require a new rules/data refresh.
+In its reported independent 320-game *simulated* holdout the current roster achieved **184/320 (57.5%)**, with actual Mega Golisopod activation **86.9%**. These are engine policy results, not real-player win rate predictions. The team remains vulnerable to at least one fully registered Torkoal / Charizard Y / Venusaur winner (14/70 = 20% in simulation).
+
+**Regulation boundary:** M-D starts **2026-12-02 02:00 UTC** (December 1 at 8 p.m. CST). Every existing runner and field in this repository is pinned to **M-C**, not M-D. New Pokémon, Mega Stones, moves, balance changes, legality, and the opponent dataset must be explicitly revalidated and the engine upgraded before claiming M-D support. Never silently reuse M-C simulator outcomes as M-D evidence.
+
+**Pre-regulation maintenance:** Run the new M-C preflight before an Evolution Engine run. It fails closed on stale/mislabeled tournament data, unsupported M-D format, species/item/Stat Point roster violations, and multiple Megas. The older `Poképrotocol cloud simulation` workflow is a legacy Incineroar/Sneasler comparison, not the current Golisopod pipeline.
