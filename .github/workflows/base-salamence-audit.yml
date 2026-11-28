@@ -1,0 +1,93 @@
+name: Poképrotocol Base Salamence Corrections
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_base_salamence.py'
+      - 'tests/test_base_salamence.py'
+      - '.github/workflows/base-salamence-audit.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: base-salamence-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL SALAMENCE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile and check base Salamence mutation tests
+        run: |
+          python -m py_compile scripts/audit_base_salamence.py
+          python -m unittest discover -s tests -p 'test_base_salamence.py' -v
+  test-moves:
+    needs: tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL SALAMENCE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install versioned weather-aware M-C engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo 'Missing validated M-C field' && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+          python scripts/install_weather_preview.py --manifest reports/evolution/weather-preview-policy.json
+      - name: Compare moves and berries; separate final holdout
+        run: python scripts/audit_base_salamence.py
+      - name: Upload full comparison and Showdown winning set
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: base-salamence-${{ github.run_id }}
+          path: reports/base-salamence-audit/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Comment result on Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/base-salamence-audit/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/base-salamence-audit/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Salamence move audit failed; see $RUN_URL"
+          fi
