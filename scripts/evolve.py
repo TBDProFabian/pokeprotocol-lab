@@ -254,7 +254,11 @@ def run_experiment(args: argparse.Namespace) -> None:
                 raise RuntimeError("Fail closed: missing versioned policy manifest")
             manifest["preview_policy"] = json.loads(policy_manifest.read_text(encoding="utf8"))
             save_manifest()
+        excluded = {name.casefold().strip() for name in args.exclude_species if name.strip()}
+        manifest["excluded_species"] = sorted(excluded)
         seed_team = parse_team(args.team.read_text(encoding="utf-8"))
+        if any(p.species.casefold() in excluded for p in seed_team):
+            raise ValueError("Starting team contains excluded species: "+", ".join(sorted(excluded)))
         if not locked(seed_team):
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
         if args.only_mega_golisopod and not exclusive_mega_golisopod(seed_team):
@@ -266,7 +270,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         if any(not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team))
                for team in incumbent_teams):
             raise ValueError("Each incumbent must preserve Golisopod as the only Mega option")
-        donors = registry(seed_team, args.donors)
+        donors = {name: sets for name,sets in registry(seed_team,args.donors).items()
+                  if name.casefold() not in excluded}
         manifest["sole_mega_requirement"] = bool(args.only_mega_golisopod)
         manifest["registered_donor_species"] = len(donors)
         manifest["registered_donor_sets"] = sum(map(len, donors.values()))
@@ -277,7 +282,9 @@ def run_experiment(args: argparse.Namespace) -> None:
                 path.write_text(stringify(team), encoding="utf-8")
             return path
         def valid(team: tuple[SetBlock, ...]) -> bool:
-            if not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team)):
+            if (not locked(team) or
+                any(p.species.casefold() in excluded for p in team) or
+                (args.only_mega_golisopod and not exclusive_mega_golisopod(team))):
                 return False
             key = fingerprint(team)
             if key not in valid_cache:
@@ -454,6 +461,7 @@ def get_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--incumbent", type=Path, action="append", default=[], help="Previous legal champion to challenge baseline and seed search")
     p.add_argument("--require-weather-preview", action="store_true", help="Refuse running with uncorrected team-preview charging math")
     p.add_argument("--only-mega-golisopod", action="store_true", help="Reject candidates with any Mega Stone besides Golisopite")
+    p.add_argument("--exclude-species", action="append", default=[], help="Species never eligible on any candidate, e.g. Salamence")
     p.add_argument("--generations", type=int, default=3, choices=range(1, 11))
     p.add_argument("--population", type=int, default=8, choices=range(2, 25))
     p.add_argument("--field-games", type=int, default=40, choices=range(10, 201))
