@@ -7,7 +7,6 @@ sand team. The tool must NEVER claim to validate damage or metagame strength.
 """
 from __future__ import annotations
 from pathlib import Path
-from evolve import parse_team,exclusive_mega_golisopod,SetBlock
 import argparse
 import json
 import sys
@@ -31,7 +30,11 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("team",type=Path)
     args=parser.parse_args()
-    issues=problems(parse_team(args.team.read_text(encoding="utf8")))
+    from evolve import parse_team,exclusive_mega_golisopod
+    team=parse_team(args.team.read_text(encoding="utf8"))
+    issues=problems(team)
+    if not exclusive_mega_golisopod(team):
+        issues.insert(0,"Golisopite must be the only Mega Stone on this team\'s six")
     print(json.dumps({"team":str(args.team),"pass":not issues,"issues":issues},indent=2))
     sys.exit(1 if issues else 0)
 
