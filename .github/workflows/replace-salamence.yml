@@ -1,0 +1,94 @@
+name: Poképrotocol replace ordinary Salamence
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/replace_salamence.py'
+      - 'tests/test_replace_salamence.py'
+      - 'teams/golisopod-salamence-replacement-baseline.txt'
+      - '.github/workflows/replace-salamence.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: replace-salamence-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL REPLACE SALAMENCE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline replacement and single-Mega tests
+        run: |
+          python -m py_compile scripts/replace_salamence.py
+          python -m unittest discover -s tests -p 'test_replace_salamence.py' -v
+  battle:
+    needs: tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL REPLACE SALAMENCE'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned M-C engine and weather-aware policy
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo 'M-C tournament field missing' && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+          python scripts/install_weather_preview.py --manifest reports/evolution/weather-preview-policy.json
+      - name: Validate candidates, run matched field, top-meta and holdout
+        run: python scripts/replace_salamence.py
+      - name: Upload chosen paste and all raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replacement-salamence-${{ github.run_id }}
+          path: reports/replace-salamence/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Comment report to Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/replace-salamence/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/replace-salamence/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Replacement run failed; see $RUN_URL"
+          fi
