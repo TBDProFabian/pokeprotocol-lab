@@ -12,6 +12,9 @@ on:
       - 'teams/golisopod-incineroar-nov27.txt'
       - 'tests/test_evolution_donors.py'
       - 'tests/test_evolve.py'
+      - 'tests/test_evolution_species_exclusion.py'
+      - 'scripts/audit_base_salamence.py'
+      - 'tests/test_base_salamence.py'
       - '.github/workflows/evolve.yml'
   workflow_dispatch:
     inputs:
@@ -147,7 +150,8 @@ jobs:
             --seed "$EVOLVE_SEED" \
             --donors data/evolution-donors.json \
             --require-weather-preview \
-            --only-mega-golisopod
+            --only-mega-golisopod \
+            --exclude-species Salamence
       - name: Upload report, all candidates, lineage, and winner
         if: always()
         uses: actions/upload-artifact@v4

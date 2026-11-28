@@ -13,7 +13,7 @@ from datetime import datetime,timezone
 from evolve import ROOT,ENGINE,run_cli,checked_rate,parse_team,stringify,locked,exclusive_mega_golisopod
 
 OUT=ROOT/"reports/base-salamence-audit"
-TEAM=ROOT/"teams/golisopod-current.txt"
+TEAM=ROOT/"teams/golisopod-sash-hypervoice-baseline.txt"
 LAIC=ROOT/"teams/benchmark-laic-champion-published-proxy.txt"
 SOURCE=ROOT/"data/latest-teams.json"
 POLICY="POKEPROTOCOL_WEATHER_PREVIEW_V2"
