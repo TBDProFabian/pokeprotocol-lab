@@ -19,6 +19,7 @@ import subprocess
 import sys
 import traceback
 from typing import Any
+from check_golisopod_synergy import problems as synergy_problems
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "champions-lab"
@@ -258,6 +259,8 @@ def run_experiment(args: argparse.Namespace) -> None:
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
         if args.only_mega_golisopod and not exclusive_mega_golisopod(seed_team):
             raise ValueError("Seed team must have Golisopite as its sole Mega Stone")
+        if args.only_mega_golisopod and synergy_problems(seed_team):
+            raise ValueError("Seed team has strategic consistency issues: "+"; ".join(synergy_problems(seed_team)))
         incumbent_teams = [parse_team(path.read_text(encoding="utf-8"))
                            for path in args.incumbent]
         if any(not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team))
@@ -274,7 +277,8 @@ def run_experiment(args: argparse.Namespace) -> None:
                 path.write_text(stringify(team), encoding="utf-8")
             return path
         def valid(team: tuple[SetBlock, ...]) -> bool:
-            if not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team)):
+            if (not locked(team) or
+                (args.only_mega_golisopod and (not exclusive_mega_golisopod(team) or synergy_problems(team)))):
                 return False
             key = fingerprint(team)
             if key not in valid_cache:
