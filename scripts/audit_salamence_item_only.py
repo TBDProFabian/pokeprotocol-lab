@@ -18,7 +18,7 @@ from pathlib import Path
 from evolve import ROOT,ENGINE,SetBlock,parse_team,stringify,exclusive_mega_golisopod,run_cli,checked_rate,registered_set
 
 OUT=ROOT/"reports/salamence-item-only"
-SEED_TEAM=ROOT/"teams/golisopod-current.txt"
+SEED_TEAM=ROOT/"teams/golisopod-sash-hypervoice-baseline.txt"
 LAIC=ROOT/"teams/benchmark-laic-champion-published-proxy.txt"
 RECENT=ROOT/"data/latest-teams.json"
 POLICY="POKEPROTOCOL_WEATHER_PREVIEW_V2"
