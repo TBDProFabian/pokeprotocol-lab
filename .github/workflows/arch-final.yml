@@ -1,0 +1,93 @@
+name: Final Archaludon move comparison under corrected preview
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/verify_final_arch_move.py'
+      - 'tests/test_final_arch_move.py'
+      - '.github/workflows/arch-final.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: final-arch-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL ARCH FINAL'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile and one-variable ablation tests
+        run: |
+          python -m py_compile scripts/verify_final_arch_move.py
+          python -m unittest discover -s tests -p 'test_final_arch_move.py' -v
+  compare:
+    needs: tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL ARCH FINAL'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pinned weather-aware Champions Lab
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo 'Missing recent M-C field' && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+          python scripts/install_weather_preview.py --manifest reports/evolution/weather-preview-policy.json
+      - name: Final move ablation versus M-C field and full recent winning sixes
+        run: python scripts/verify_final_arch_move.py
+      - name: Upload final move decisions, raw game logs, and Showdown team
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-final-${{ github.run_id }}
+          path: reports/final-arch-move/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Comment result to triggering Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/final-arch-move/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/final-arch-move/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Archaludon move comparison failed; see $RUN_URL"
+          fi
