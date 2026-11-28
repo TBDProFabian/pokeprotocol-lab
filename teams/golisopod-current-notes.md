@@ -6,32 +6,35 @@
 
 ## Why this is the active team
 
-The initial evolutionary search and broad opponent audit favored a three-Mega-stone Tyranitar/Sand roster, but raw battle logs revealed a major theme failure: the bot usually **Mega Evolved Salamence**, even though Golisopod was frequently brought. In 25 sampled logged matches, it Mega Evolved Salamence 17 times, Golisopod four, and Tyranitar four. Bring rate must not be represented as Golisopod's Mega rate.
+**Current canonical six, November 27, 2026:** Mega Golisopod / Corviknight / Tyranitar / Basculegion / Archaludon / Rillaboom. The user explicitly does **not** want ordinary Salamence without its Mega Stone; carrying Salamencite would compete with the team's primary Mega Golisopod strategy. This team uses **only Golisopite**, so the simulator's Mega activation rate measures actual Mega Golisopod usage.
 
-**Latest canonical revision:** Salamence now holds **Sitrus Berry** based on the subsequent item-only audit (#35). The initial holdout numbers below refer to the earlier Focus Sash roster; do not treat them as measurements of the new item variant. The directly comparable 320-game Sitrus holdout scored 55.3%.
+The [nine-team replacement evaluation, Issue #39](https://github.com/TBDProFabian/pokeprotocol-lab/issues/39#issuecomment-7233393139) included legal Staraptor (both Tailwind and Scarf), Incineroar, Whimsicott, Talonflame, Corviknight and Farigiraf sets; the old non-Mega Salamence and true Salamencite variants were reference-only. The predefined training selection chose **Corviknight**, with Farigiraf showing better Mega Golisopod activation and an initially better holdout. That prompted a *new, separately prespecified* [Fire/Sun safety gate, Issue #42](https://github.com/TBDProFabian/pokeprotocol-lab/issues/42#issuecomment-7233555813) against two complete registered Sun-team winners.
 
-The [actual-use correction audit, Issue #29](https://github.com/TBDProFabian/pokeprotocol-lab/issues/29#issuecomment-7230793185), compared teams with **Golisopite as the only Mega Stone** under the pinned Champions Lab engine and versioned weather-aware preview policy. The winner is **Sand / base Salamence**.
+The Sun safety gate compared Corviknight, Farigiraf, Incineroar and Staraptor, checking each full six with the pinned Showdown Regulation M-C validator and versioned weather-aware Champions Lab preview. Winner chosen **before** a new independent holdout using: 35% field, 20% Nov 18 Torkoal/Charizard Y registered Sun winner, 15% Oct 26 Charizard Y/Venusaur registered winner, 10% LAIC published-set proxy, 10% difficult fully registered winner #2, and 10% actual Mega Golisopod activation, with an 80% Mega activation floor. **Corviknight narrowly won the composite, 52.9% versus Farigiraf's 52.6%.** This is a noisy close result, not strong proof of superiority.
 
-- Selection/training: **133/240 = 55.4%** simulated field wins, Golisopod brought **95.4%**, Mega Golisopod activated **87.1%**.
-- Independent holdout: **175/320 = 54.7%**, approximate 95% interval **49.2–60.1%**. Golisopod brought **93.8%** and Mega Golisopod activated **85.3%**.
-- The unrestricted three-Mega reference scored **179/320 = 55.9%** on the same holdout, but did not isolate Golisopod as the Mega. The **1.2 percentage point gap** is small and not evidence of a tournament win-rate difference.
-- LAIC champion published-set proxy: **65/80 = 81.2%** heuristic and **8/16 = 50.0%** lookahead. The proxy has verified public species, moves, items and natures but **inferred Stat Points**.
-- Complete recent registered winner #2: **31/80 = 38.8%** heuristic and **6/16 = 37.5%** lookahead. **Important difficult matchup**. Future tuning must avoid overfitting to LAIC alone.
-- Alternative single-Golisopite builds fell behind in field training: Sand/Whimsicott 46.7%, Rain/base Salamence 47.5%.
-- These are AI-versus-AI **simulator** results, not estimates of a player's win rate or proof of tournament superiority.
+- **Independent new holdout:** Corviknight **184/320 = 57.5%**, Golisopod brought **95.3%**, and actually Mega Evolved **86.9%**. Farigiraf scored **140/320 = 43.8%**, Golisopod Mega Evolved **94.1%**. A previous holdout seed (#39) had favored Farigiraf, so the reversal shows major simulator/sample uncertainty.
+- **First registered Sun opponent:** Corviknight **14/70 = 20.0%**, Farigiraf **21/70 = 30.0%**, Incineroar **23/70 = 32.9%**. Against that complete Torkoal/Charizard Y/Venusaur six, our current team is **very vulnerable**.
+- **Second registered Sun opponent:** Corviknight **53/70 = 75.7%**, Farigiraf **43/70 = 61.4%**. Sun is not one homogeneous matchup.
+- **Other matchup checks:** Corviknight versus LAIC champion published-set proxy **39/70 = 55.7%** (published moves, item and nature but inferred Stat Points); versus hard recent 11–0 registered winner #2 **24/70 = 34.3%**. These remain concerning.
+- **Lookahead diagnostic (12 games per pairing, extremely uncertain):** Corviknight against first Torkoal Sun opponent **2/12 = 16.7%** and second Sun **10/12 = 83.3%**; these confirm a possible sharp matchup distinction rather than an overall win-rate estimate.
+- All results are **AI-vs-AI simulations under one pinned M-C engine**, not estimates of human tournament performance, and M-D legality has not been checked.
+
+This is the best current **no-base-Salamence**, Mega Golisopod-centered configuration from the constrained experiments. The next meaningful engineering/teambuilding work is **remedying the full Torkoal Sun and recent 11–0 team matchups**, rather than rebuilding Salamence again.
 
 ## Six roles and play principles
 
 1. **Mega Golisopod, the actual Mega:** Leech Life / Iron Head / Sucker Punch / Protect; Bug/Steel offensive presence with recovery and priority. 2 HP / 32 Atk / 32 Spe, Adamant. Mega activation, not roster inclusion, is our tracking priority.
-2. **Base Salamence, Sitrus Berry:** Intimidate plus Tailwind speed control and Hyper Voice/Draco Meteor pressure. Salamence holds **no Mega Stone**. Sitrus avoids the immediate ally Sand Stream versus Focus Sash full-health conflict; it restores health when reduced to half HP or less. Hyper Voice remains *Normal-type spread damage*, not boosted Aerilate STAB.
+2. **Corviknight, Sitrus Berry:** Mirror Armor, Brave Bird, Roost, Tailwind and Protect. Unlike non-Mega Salamence, it is immune to Tyranitar's sandstorm chip, retains Tailwind support and can heal with Roost. **It does not supply Intimidate** and adds a third Steel-type slot, worsening stacked Fire exposure. 32 HP / 1 Atk / 1 Def / 15 SpD / 17 Spe, Careful.
 3. **Tyranitar, Chople Berry:** Sand Stream weather denial, Rock Slide pressure, Knock Off, Low Kick. **No Tyranitarite**. Sand can deny opposing rain and undermine immediate Electro Shot, so team preview decides whether to bring it.
 4. **Physical Basculegion, Mystic Water:** Adaptability Wave Crash and Aqua Jet, plus scaling Last Respects. This is not the previous Swift Swim Basculegion-F.
 5. **Archaludon, Leftovers:** Stamina and Dragon Pulse/Aura Sphere. Electro Shot is **situational** without our own Drizzle. A controlled [move audit, Issue #27](https://github.com/TBDProFabian/pokeprotocol-lab/issues/27#issuecomment-7230768339) on the preceding unrestricted sand six found Electro Shot 60.6%, Thunderbolt 60.0%, Flash Cannon 57.8%, Snarl 58.1% over 360 field games. The differences were not conclusive; leave Electro Shot unless more evidence emerges. Those move figures were **not** measured on this exact single-Mega version.
 6. **Rillaboom, Miracle Seed:** Fake Out, Grassy Glide, Wood Hammer and High Horsepower to give Golisopod safe positioning, grass priority and Ground coverage.
 
-**Play cautions:** Mega Golisopod is particularly vulnerable to Fire. Rillaboom also fears Fire; avoid exposing them together into spread Fire attacks. Tyranitar can contest Sun/Rain, Basculegion resists Fire, and Salamence provides Intimidate. This is not the former Pelipper Wide Guard team, so Rock Slide and spread-move protection require careful positioning.
+**Play cautions:** Mega Golisopod (Bug/Steel) is 4× weak to Fire; Corviknight and Rillaboom are also Fire-weak. **This is a serious shared Fire vulnerability and Corviknight creates three Steel types on the roster.** Tyranitar's sand can contest Sun, and Basculegion resists Fire, but neither guarantees a solution. The complete registered Torkoal/Charizard Y/Venusaur winner demolished our fast AI (20% wins), and lookahead only went 2/12. This is not a Pelipper Wide Guard team; manage spread attacks, speed and lead positioning carefully. Corviknight is not an Intimidate user.
 
-## Salamence item-only sand correction: Sitrus Berry is the current item
+## Archived Salamence item/move experiments (not the current team)
+
+The following tests explain why the earlier regular Salamence roster was abandoned and preserved as a reproducible historical benchmark. **No Salamence is present in the current six.** The Focus Sash / Sitrus Berry comparison below is historical; the current Sitrus holder is Corviknight.
 
 The initial non-Mega Salamence carried both **Hyper Voice** and **Focus Sash** from the prior Mega variant. Base Salamence does not have Aerilate, so Hyper Voice is still Normal spread damage without Flying STAB or Aerilate's boost. More importantly, allied Tyranitar's Sand Stream damages Salamence at the end of turns, removing the full-HP condition that makes Focus Sash work. The Sash *can* activate before the first sand tick, but should not be assumed to protect Salamence after turn one.
 
@@ -46,11 +49,16 @@ A new [item-only study, Issue #35](https://github.com/TBDProFabian/pokeprotocol-
 - On a fresh 320-battle field holdout, Focus Sash won **178/320 = 55.6%**, versus Sitrus Berry **177/320 = 55.3%**. The overall difference was effectively zero and not statistically meaningful. For both variants, the bot brought Salamence in 85.3% and Tyranitar in 24.1% of holdout battles.
 - The prespecified 55% field / 30% LAIC / 15% recent winner training score narrowly favored **Sitrus 62.7%** versus **Sash 62.4%**. Small score gaps should not be oversold.
 
-**Decision: promote Sitrus Berry with Hyper Voice still unchanged** because it avoids a known internal weather/item conflict, maintains a statistically indistinguishable overall holdout, and performed materially better against the difficult recent winner in this simulation. The changes are limited to the item. This is practical team-building judgment, **not proof** that Focus Sash is categorically inferior or that Sitrus will improve human tournament win rates.
+**Historical decision at the time:** We promoted Sitrus Berry with Hyper Voice still unchanged on Salamence. That historical set has since been **replaced entirely by Corviknight** in the current team. That choice avoided a known internal sand/item conflict and preserved a statistically similar overall holdout. The changes are limited to the item. This is practical team-building judgment, **not proof** that Focus Sash is categorically inferior or that Sitrus will improve human tournament win rates.
 
 A [synergy-warning safeguard, PR #33](https://github.com/TBDProFabian/pokeprotocol-lab/pull/33), records Mega-to-base Aerilate assumptions and ally Sand Stream/Focus Sash conflicts as advisories rather than hard bans, so future builds investigate instead of blindly copying or forbidding sets. A future **move-only** Hyper Voice vs Heat Wave/Air Slash test would be appropriate, but is distinct from the item issue fixed here.
 
 ## Engineering status and provenance
+
+- [No-base-Salamence replacement study, Issue #39](https://github.com/TBDProFabian/pokeprotocol-lab/issues/39#issuecomment-7233393139): nine legal configurations, selected Corviknight from the initial training composite; old Salamence retained as historical reference only.
+- [Final full-OTS Sun safety validation, Issue #42](https://github.com/TBDProFabian/pokeprotocol-lab/issues/42#issuecomment-7233555813): Corviknight won newly prespecified Sun-focused selection and a separate 320-battle holdout. Results warn of very poor Torkoal Sun matchup.
+- [Future no-Salamence exclusion PR #40](https://github.com/TBDProFabian/pokeprotocol-lab/pull/40): enforce user preference during future Mega Golisopod evolution.
+
 
 - [Root-cause Electro Shot mutation / preview audit](https://github.com/TBDProFabian/pokeprotocol-lab/issues/13)
 - [Charging move preview A/B](https://github.com/TBDProFabian/pokeprotocol-lab/issues/19): confirmed previous preview scoring bias; corrected model uses versioned `POKEPROTOCOL_WEATHER_PREVIEW_V2` weather-aware charge tempo.
