@@ -34,6 +34,7 @@ def bring(x,species):
     side=x.get("side",x.get("a",{}))
     return next((a.get("brought",0) for a in side.get("bringRate",[]) if a.get("species")==species),0)
 def team_from_ots(sources,ident,dest):
+    OUT.mkdir(parents=True,exist_ok=True)
     row=next((t for t in sources if t["id"]==ident),None)
     if row is None or len(row.get("sets",[]))!=6:
         raise RuntimeError("Missing full OTS "+ident)
