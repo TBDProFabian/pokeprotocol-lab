@@ -8,7 +8,7 @@ Adamant Nature
 - Sucker Punch
 - Protect
 
-Salamence @ Focus Sash
+Salamence @ Sitrus Berry
 Ability: Intimidate
 Level: 50
 EVs: 2 HP / 32 SpA / 32 Spe
