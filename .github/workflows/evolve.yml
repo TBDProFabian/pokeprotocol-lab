@@ -13,6 +13,8 @@ on:
       - 'tests/test_evolution_donors.py'
       - 'tests/test_evolve.py'
       - 'tests/test_evolution_species_exclusion.py'
+      - 'scripts/pre_md_audit.py'
+      - 'tests/test_pre_md_audit.py'
       - 'scripts/audit_base_salamence.py'
       - 'tests/test_base_salamence.py'
       - '.github/workflows/evolve.yml'
@@ -139,6 +141,8 @@ jobs:
           near(chargeTempo({id:'flashcannon',flags:[]},'Leftovers',no),1);
           console.log('Weather, competing weather, Mega weather, and Power Herb checks passed');
           JS
+      - name: Pre-regulation format, field and canonical roster safety gate
+        run: python scripts/pre_md_audit.py --team teams/golisopod-current.txt --field data/field-recent.json --audit data/pokeprotocol-refresh.json
       - name: Expand donor registry from the current tournament field
         run: python scripts/build_evolution_donors.py
       - name: Evolve legal Golisopod teams
