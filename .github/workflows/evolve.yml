@@ -144,9 +144,8 @@ jobs:
             --field-games "$EVOLVE_FIELD_GAMES" \
             --seed "$EVOLVE_SEED" \
             --donors data/evolution-donors.json \
-            --incumbent teams/golisopod-incineroar-nov27.txt \
-            --incumbent teams/evolution-best-nov27.txt \
-            --require-weather-preview
+            --require-weather-preview \
+            --only-mega-golisopod
       - name: Upload report, all candidates, lineage, and winner
         if: always()
         uses: actions/upload-artifact@v4

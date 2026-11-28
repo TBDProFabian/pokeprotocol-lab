@@ -68,6 +68,20 @@ def locked(team: tuple[SetBlock, ...]) -> bool:
             len({p.species.casefold() for p in team}) == 6)
 
 
+def exclusive_mega_golisopod(team: tuple[SetBlock, ...]) -> bool:
+    """Require Golisopite as the only Mega Stone.
+
+    Showdown's own team validator remains the authority for exact legality.
+    This additional theme restriction rejects conventional and X/Y/Z Mega
+    stones. It is intentionally fail-closed for newly introduced '*ite' forms.
+    """
+    if not locked(team):
+        return False
+    def mega_stone(item: str) -> bool:
+        return item.casefold() != "eviolite" and bool(re.search(r"ite(?:\s+[XYZ])?$", item, flags=re.IGNORECASE))
+    return sum(mega_stone(p.item) for p in team) == 1
+
+
 def registered_set(record: dict[str, Any]) -> SetBlock | None:
     """Convert full tournament sets, preserving their registered moves/item/stat points."""
     species, item, ability = (record.get(k) for k in ("species", "item", "ability"))
@@ -242,11 +256,15 @@ def run_experiment(args: argparse.Namespace) -> None:
         seed_team = parse_team(args.team.read_text(encoding="utf-8"))
         if not locked(seed_team):
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
+        if args.only_mega_golisopod and not exclusive_mega_golisopod(seed_team):
+            raise ValueError("Seed team must have Golisopite as its sole Mega Stone")
         incumbent_teams = [parse_team(path.read_text(encoding="utf-8"))
                            for path in args.incumbent]
-        if any(not locked(team) for team in incumbent_teams):
-            raise ValueError("Each incumbent must preserve Mega Golisopod and six unique species")
+        if any(not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team))
+               for team in incumbent_teams):
+            raise ValueError("Each incumbent must preserve Golisopod as the only Mega option")
         donors = registry(seed_team, args.donors)
+        manifest["sole_mega_requirement"] = bool(args.only_mega_golisopod)
         manifest["registered_donor_species"] = len(donors)
         manifest["registered_donor_sets"] = sum(map(len, donors.values()))
         valid_cache: dict[str, bool] = {}
@@ -256,7 +274,7 @@ def run_experiment(args: argparse.Namespace) -> None:
                 path.write_text(stringify(team), encoding="utf-8")
             return path
         def valid(team: tuple[SetBlock, ...]) -> bool:
-            if not locked(team):
+            if not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team)):
                 return False
             key = fingerprint(team)
             if key not in valid_cache:
@@ -431,6 +449,7 @@ def get_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--donors", type=Path, default=ROOT / "data/latest-teams.json")
     p.add_argument("--incumbent", type=Path, action="append", default=[], help="Previous legal champion to challenge baseline and seed search")
     p.add_argument("--require-weather-preview", action="store_true", help="Refuse running with uncorrected team-preview charging math")
+    p.add_argument("--only-mega-golisopod", action="store_true", help="Reject candidates with any Mega Stone besides Golisopite")
     p.add_argument("--generations", type=int, default=3, choices=range(1, 11))
     p.add_argument("--population", type=int, default=8, choices=range(2, 25))
     p.add_argument("--field-games", type=int, default=40, choices=range(10, 201))

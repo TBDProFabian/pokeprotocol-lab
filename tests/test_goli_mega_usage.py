@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-import test_goli_mega_usage as audit
+import goli_mega_usage as audit
 from evolve import parse_team,locked
 
 class MegaGolisopodGuardTests(unittest.TestCase):
