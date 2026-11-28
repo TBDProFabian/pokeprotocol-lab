@@ -31,6 +31,12 @@ class PreMDAuditTests(unittest.TestCase):
             self.assertIsNotNone(OTHER_REGULATION.search(name),name)
         for name in ("Regulation M-C Invitational", "2026 M-C Doubles", "champions M/C #8", "Open Finals"):
             self.assertIsNone(OTHER_REGULATION.search(name),name)
+    def test_refresh_mutex_is_job_scoped_not_workflow_scoped(self):
+        workflow=(ROOT/".github/workflows/refresh-database.yml").read_text(encoding="utf8")
+        before_jobs, jobs = workflow.split("\njobs:\n",1)
+        self.assertNotIn("concurrency:",before_jobs)
+        self.assertIn("    concurrency:\n      group: pokeprotocol-field-refresh",jobs)
+        self.assertIn("    if: >-",jobs)
     def test_reject_wrong_field_and_stale_refresh(self):
         now=datetime(2026,11,28,tzinfo=timezone.utc)
         base={"meta":{"sources":[{"name":"Champions M-C", "reg":"M-C"} for _ in range(3)]},
