@@ -275,6 +275,8 @@ def run_experiment(args: argparse.Namespace) -> None:
         if any(not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team))
                for team in incumbent_teams):
             raise ValueError("Each incumbent must preserve Golisopod as the only Mega option")
+        if any(has_excluded_species(team, excluded) for team in incumbent_teams):
+            raise ValueError("An incumbent contains excluded species: " + ", ".join(sorted(excluded)))
         donors = {name: sets for name,sets in registry(seed_team,args.donors).items()
                   if name.casefold() not in excluded}
         manifest["sole_mega_requirement"] = bool(args.only_mega_golisopod)
