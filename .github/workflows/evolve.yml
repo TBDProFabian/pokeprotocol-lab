@@ -12,6 +12,9 @@ on:
       - 'teams/golisopod-incineroar-nov27.txt'
       - 'tests/test_evolution_donors.py'
       - 'tests/test_evolve.py'
+      - 'tests/test_evolution_species_exclusion.py'
+      - 'scripts/audit_base_salamence.py'
+      - 'tests/test_base_salamence.py'
       - '.github/workflows/evolve.yml'
   workflow_dispatch:
     inputs:
