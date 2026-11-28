@@ -24,8 +24,9 @@ const reportPath = path.join(ROOT, 'data/pokeprotocol-refresh.json');
 const recentPath = path.join(ROOT, 'data/field-recent.json');
 const dex = loadDex();
 const field = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
-// Prune events explicitly identified as older regulations or singles.
-const wrongReg = /\bm[ -]?[abd]\b|\breg(?:ulation)?\s*(?:a|b|d|f|h|i)\b|\bsingles?\b/i;
+// Reject non-M-C regulation labels (including Reg I/J and M-D), and singles.
+// Explicit M-C is allowed; candidate set validity alone does not prove event format.
+const wrongReg = /\bm[ -]?[a-bd-z]\b|\breg(?:ulation)?\s*(?:set\s*)?[a-bd-ln-z]\b|\bsingles?\b/i;
 const mislabelledIds = new Set<string>((field.meta.sources || [])
   .filter((s: any) => s.reg === 'M-C' && wrongReg.test(String(s.name || '')))
   .map((s: any) => s.id));
