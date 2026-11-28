@@ -8,13 +8,13 @@ Adamant Nature
 - Sucker Punch
 - Protect
 
-Salamence @ Sitrus Berry
-Ability: Intimidate
+Corviknight @ Sitrus Berry
+Ability: Mirror Armor
 Level: 50
-EVs: 2 HP / 32 SpA / 32 Spe
-Timid Nature
-- Hyper Voice
-- Draco Meteor
+EVs: 32 HP / 1 Atk / 1 Def / 15 SpD / 17 Spe
+Careful Nature
+- Brave Bird
+- Roost
 - Tailwind
 - Protect
 
