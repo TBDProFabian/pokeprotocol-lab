@@ -83,6 +83,11 @@ def exclusive_mega_golisopod(team: tuple[SetBlock, ...]) -> bool:
     return sum(mega_stone(p.item) for p in team) == 1
 
 
+def has_excluded_species(team: tuple[SetBlock, ...], excluded: set[str]) -> bool:
+    """Case-insensitive species exclusion, independent of item and other sets."""
+    return any(p.species.casefold() in excluded for p in team)
+
+
 def registered_set(record: dict[str, Any]) -> SetBlock | None:
     """Convert full tournament sets, preserving their registered moves/item/stat points."""
     species, item, ability = (record.get(k) for k in ("species", "item", "ability"))
@@ -257,7 +262,7 @@ def run_experiment(args: argparse.Namespace) -> None:
         excluded = {name.casefold().strip() for name in args.exclude_species if name.strip()}
         manifest["excluded_species"] = sorted(excluded)
         seed_team = parse_team(args.team.read_text(encoding="utf-8"))
-        if any(p.species.casefold() in excluded for p in seed_team):
+        if has_excluded_species(seed_team, excluded):
             raise ValueError("Starting team contains excluded species: "+", ".join(sorted(excluded)))
         if not locked(seed_team):
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
@@ -283,7 +288,7 @@ def run_experiment(args: argparse.Namespace) -> None:
             return path
         def valid(team: tuple[SetBlock, ...]) -> bool:
             if (not locked(team) or
-                any(p.species.casefold() in excluded for p in team) or
+                has_excluded_species(team, excluded) or
                 (args.only_mega_golisopod and not exclusive_mega_golisopod(team))):
                 return False
             key = fingerprint(team)
