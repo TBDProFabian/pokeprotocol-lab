@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from evolve import ROOT, ENGINE, SetBlock, parse_team, stringify, exclusive_mega_golisopod, locked, registered_set, run_cli, checked_rate
 
 OUT=ROOT/"reports/replace-salamence"
-TEAM=ROOT/"teams/golisopod-current.txt"
+TEAM=ROOT/"teams/golisopod-salamence-replacement-baseline.txt"
 LAIC=ROOT/"teams/benchmark-laic-champion-published-proxy.txt"
 REG=ROOT/"data/latest-teams.json"
 POLICY="POKEPROTOCOL_WEATHER_PREVIEW_V2"
