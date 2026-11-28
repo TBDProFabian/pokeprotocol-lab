@@ -19,7 +19,7 @@ import subprocess
 import sys
 import traceback
 from typing import Any
-from check_golisopod_synergy import problems as synergy_problems
+from check_golisopod_synergy import warnings as synergy_warnings
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "champions-lab"
@@ -259,8 +259,8 @@ def run_experiment(args: argparse.Namespace) -> None:
             raise ValueError("Seed team must contain Golisopod @ Golisopite in the first slot, once only")
         if args.only_mega_golisopod and not exclusive_mega_golisopod(seed_team):
             raise ValueError("Seed team must have Golisopite as its sole Mega Stone")
-        if args.only_mega_golisopod and synergy_problems(seed_team):
-            raise ValueError("Seed team has strategic consistency issues: "+"; ".join(synergy_problems(seed_team)))
+        if args.only_mega_golisopod:
+            manifest["seed_strategy_advisories"] = synergy_warnings(seed_team)
         incumbent_teams = [parse_team(path.read_text(encoding="utf-8"))
                            for path in args.incumbent]
         if any(not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team))
@@ -277,8 +277,7 @@ def run_experiment(args: argparse.Namespace) -> None:
                 path.write_text(stringify(team), encoding="utf-8")
             return path
         def valid(team: tuple[SetBlock, ...]) -> bool:
-            if (not locked(team) or
-                (args.only_mega_golisopod and (not exclusive_mega_golisopod(team) or synergy_problems(team)))):
+            if not locked(team) or (args.only_mega_golisopod and not exclusive_mega_golisopod(team)):
                 return False
             key = fingerprint(team)
             if key not in valid_cache:
@@ -390,6 +389,7 @@ def run_experiment(args: argparse.Namespace) -> None:
                                "species": [p.species for p in x.team]})
         validation.sort(key=lambda d: d["rate"], reverse=True)
         winner_result = next(v for v in validation if v["id"] == winner.id)
+        manifest["selected_team_strategy_advisories"] = synergy_warnings(winner.team)
         (OUT / "best.txt").write_text(stringify(winner.team), encoding="utf-8")
         (OUT / "baseline.txt").write_text(stringify(seed_team), encoding="utf-8")
         (OUT / "lineage.json").write_text(json.dumps({k: render_record(v) for k, v in history.items()}, indent=2), encoding="utf-8")
