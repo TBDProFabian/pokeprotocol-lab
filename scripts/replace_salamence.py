@@ -45,7 +45,7 @@ Jolly Nature
 - Brave Bird
 - Close Combat
 - U-turn""",
-"Incineroar | defensive pivot": """Incineroar @ Chople Berry
+"Incineroar | defensive pivot": """Incineroar @ Sitrus Berry
 Ability: Intimidate
 Level: 50
 EVs: 32 HP / 1 Def / 10 SpD / 23 Spe
