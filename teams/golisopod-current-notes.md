@@ -8,6 +8,8 @@
 
 The initial evolutionary search and broad opponent audit favored a three-Mega-stone Tyranitar/Sand roster, but raw battle logs revealed a major theme failure: the bot usually **Mega Evolved Salamence**, even though Golisopod was frequently brought. In 25 sampled logged matches, it Mega Evolved Salamence 17 times, Golisopod four, and Tyranitar four. Bring rate must not be represented as Golisopod's Mega rate.
 
+**Latest canonical revision:** Salamence now holds **Sitrus Berry** based on the subsequent item-only audit (#35). The initial holdout numbers below refer to the earlier Focus Sash roster; do not treat them as measurements of the new item variant. The directly comparable 320-game Sitrus holdout scored 55.3%.
+
 The [actual-use correction audit, Issue #29](https://github.com/TBDProFabian/pokeprotocol-lab/issues/29#issuecomment-7230793185), compared teams with **Golisopite as the only Mega Stone** under the pinned Champions Lab engine and versioned weather-aware preview policy. The winner is **Sand / base Salamence**.
 
 - Selection/training: **133/240 = 55.4%** simulated field wins, Golisopod brought **95.4%**, Mega Golisopod activated **87.1%**.
@@ -21,7 +23,7 @@ The [actual-use correction audit, Issue #29](https://github.com/TBDProFabian/pok
 ## Six roles and play principles
 
 1. **Mega Golisopod, the actual Mega:** Leech Life / Iron Head / Sucker Punch / Protect; Bug/Steel offensive presence with recovery and priority. 2 HP / 32 Atk / 32 Spe, Adamant. Mega activation, not roster inclusion, is our tracking priority.
-2. **Base Salamence, Focus Sash:** Intimidate plus Tailwind speed control and Hyper Voice/Draco Meteor pressure. Salamence holds **no Mega Stone**. Its Focus Sash can be broken by Tyranitar's sand chip, so plan the leads and weather timing.
+2. **Base Salamence, Sitrus Berry:** Intimidate plus Tailwind speed control and Hyper Voice/Draco Meteor pressure. Salamence holds **no Mega Stone**. Sitrus avoids the immediate ally Sand Stream versus Focus Sash full-health conflict; it restores health when reduced to half HP or less. Hyper Voice remains *Normal-type spread damage*, not boosted Aerilate STAB.
 3. **Tyranitar, Chople Berry:** Sand Stream weather denial, Rock Slide pressure, Knock Off, Low Kick. **No Tyranitarite**. Sand can deny opposing rain and undermine immediate Electro Shot, so team preview decides whether to bring it.
 4. **Physical Basculegion, Mystic Water:** Adaptability Wave Crash and Aqua Jet, plus scaling Last Respects. This is not the previous Swift Swim Basculegion-F.
 5. **Archaludon, Leftovers:** Stamina and Dragon Pulse/Aura Sphere. Electro Shot is **situational** without our own Drizzle. A controlled [move audit, Issue #27](https://github.com/TBDProFabian/pokeprotocol-lab/issues/27#issuecomment-7230768339) on the preceding unrestricted sand six found Electro Shot 60.6%, Thunderbolt 60.0%, Flash Cannon 57.8%, Snarl 58.1% over 360 field games. The differences were not conclusive; leave Electro Shot unless more evidence emerges. Those move figures were **not** measured on this exact single-Mega version.
@@ -29,18 +31,24 @@ The [actual-use correction audit, Issue #29](https://github.com/TBDProFabian/pok
 
 **Play cautions:** Mega Golisopod is particularly vulnerable to Fire. Rillaboom also fears Fire; avoid exposing them together into spread Fire attacks. Tyranitar can contest Sun/Rain, Basculegion resists Fire, and Salamence provides Intimidate. This is not the former Pelipper Wide Guard team, so Rock Slide and spread-move protection require careful positioning.
 
-## Base Salamence audit: move/item inheritance is now an advisory, not an automatic failure
+## Salamence item-only sand correction: Sitrus Berry is the current item
 
-The set `Focus Sash / Hyper Voice / Draco Meteor / Tailwind / Protect` was copied from a former **Mega Salamence** configuration when Salamencite was removed to enforce Mega Golisopod. The initial conversion was *not* an informed reranking of base Salamence moves. Regular Salamence has **Intimidate** rather than Aerilate, so Hyper Voice remains Normal spread damage instead of Aerilate-boosted Flying STAB. Sand Stream from our Tyranitar can break Focus Sash after the first sand-damage tick, but neither effect makes the set outright illegal or always poor.
+The initial non-Mega Salamence carried both **Hyper Voice** and **Focus Sash** from the prior Mega variant. Base Salamence does not have Aerilate, so Hyper Voice is still Normal spread damage without Flying STAB or Aerilate's boost. More importantly, allied Tyranitar's Sand Stream damages Salamence at the end of turns, removing the full-HP condition that makes Focus Sash work. The Sash *can* activate before the first sand tick, but should not be assumed to protect Salamence after turn one.
 
-A live [six-set corrected-preview A/B audit, Issue #32](https://github.com/TBDProFabian/pokeprotocol-lab/issues/32#issuecomment-7232057621) tested that original set, Sash+Heat Wave, and Sitrus/Haban Berries with either Heat Wave or Air Slash. All six passed the pinned M-C Showdown legality validator. The non-Sash, non-Hyper-Voice options are mechanically coherent alternatives; **none was proven better by independent holdout**.
+Our earlier [six-set audit, Issue #32](https://github.com/TBDProFabian/pokeprotocol-lab/issues/32#issuecomment-7232057621) compared **Focus Sash + Hyper Voice** against **Sitrus Berry + Heat Wave**, changing two factors together. Its 280-battle holdout favored the old set 62.9% versus 55.4%. That comparison could NOT attribute the difference to the item and was not a valid resolution of the Sand Stream synergy question.
 
-- On one common 200-battle *training* set, the original was **105/200 = 52.5%**, Sitrus/Heat Wave **108/200 = 54.0%**, Haban/Air Slash **113/200 = 56.5%** and Sitrus/Air Slash **114/200 = 57.0%**. Targeted difficult winner matchups changed the weighted ranking, which selected Sitrus/Heat Wave before seeing holdout.
-- On a different 280-battle *holdout* seed, **original Focus Sash + Hyper Voice won 176/280 = 62.9%**, while the preselected Sitrus/Heat Wave alternative won **155/280 = 55.4%**. This is a single bot-simulator holdout, **not** definitive proof Hyper Voice is optimal or human win-rate evidence.
-- Original holdout bring rates: **Salamence 81.1%; Tyranitar 28.6%; Mega Golisopod activated 87.5%**. With Tyranitar omitted most games, its Sand Stream is not automatically destroying Salamence's Sash; Focus Sash may still matter before end-turn chip even when sand is present. Sitrus/Heat Wave brought Salamence 95.4% and Tyranitar 25.0%, substantially changing the preview composition.
-- The three available logged matches per archetype are too few to measure actual Focus Sash activations across the field. This remains a tactical question for real-player replay validation, not a proven item-synergy benefit.
+A new [item-only study, Issue #35](https://github.com/TBDProFabian/pokeprotocol-lab/issues/35#issuecomment-7232948152) held all six Pokémon, all 24 moves, Stat Points, natures, and abilities fixed, changing ONLY Salamence's item among Focus Sash, Sitrus Berry, Haban Berry and Yache Berry.
 
-**Decision:** Retain the old set as the current, legally validated configuration for now. It was inherited inadvertently, but it may be useful in the simulator through Normal spread coverage and first-turn Focus Sash survivability. Do not silently replace it or categorically prohibit it. A new [quality-warning gate, PR #33](https://github.com/TBDProFabian/pokeprotocol-lab/pull/33) records the missing Aerilate boost and sand/Sash interaction **as advisories, not automatic rejection** during future evolution.
+- Matched field training (360 battles each): **Focus Sash 183/360 = 50.8%**, **Sitrus Berry 179/360 = 49.7%**.
+- LAIC champion published-set proxy, where **both Salamence and Tyranitar were selected in 100% of the battles**: Focus Sash **92.9%**; Sitrus Berry **88.6%** (140 battles per variant).
+- Recent full registered winner #2, our difficult matchup: Focus Sash **43.6%**; Sitrus Berry **58.6%** (140 battles per variant).
+- In the first 60 logged Focus Sash games against the LAIC proxy, Tyranitar activated sand **60/60**, Salamence took sand chip in **46/60**, and **Focus Sash activated only 2/60**. This measures *logged activations*, not proof the Sash was never potentially valuable in other games.
+- On a fresh 320-battle field holdout, Focus Sash won **178/320 = 55.6%**, versus Sitrus Berry **177/320 = 55.3%**. The overall difference was effectively zero and not statistically meaningful. For both variants, the bot brought Salamence in 85.3% and Tyranitar in 24.1% of holdout battles.
+- The prespecified 55% field / 30% LAIC / 15% recent winner training score narrowly favored **Sitrus 62.7%** versus **Sash 62.4%**. Small score gaps should not be oversold.
+
+**Decision: promote Sitrus Berry with Hyper Voice still unchanged** because it avoids a known internal weather/item conflict, maintains a statistically indistinguishable overall holdout, and performed materially better against the difficult recent winner in this simulation. The changes are limited to the item. This is practical team-building judgment, **not proof** that Focus Sash is categorically inferior or that Sitrus will improve human tournament win rates.
+
+A [synergy-warning safeguard, PR #33](https://github.com/TBDProFabian/pokeprotocol-lab/pull/33), records Mega-to-base Aerilate assumptions and ally Sand Stream/Focus Sash conflicts as advisories rather than hard bans, so future builds investigate instead of blindly copying or forbidding sets. A future **move-only** Hyper Voice vs Heat Wave/Air Slash test would be appropriate, but is distinct from the item issue fixed here.
 
 ## Engineering status and provenance
 
