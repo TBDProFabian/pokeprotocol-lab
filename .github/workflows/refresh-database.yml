@@ -79,6 +79,8 @@ jobs:
           print('Refresh validated, 35-day field has',data['recentCounts']['mcTeams'],'teams')
           PY
 
+      - name: Reject mislabeled tournament events or stale fields before publishing
+        run: python scripts/pre_md_audit.py --team teams/golisopod-current.txt --field data/field-recent.json --audit data/pokeprotocol-refresh.json
       - name: Commit refreshed archive, recent field and audit
         run: |
           git config user.name "github-actions[bot]"
