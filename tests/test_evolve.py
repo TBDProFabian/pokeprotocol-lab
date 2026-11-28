@@ -49,6 +49,9 @@ class GeneticsTests(unittest.TestCase):
         self.assertFalse(evolve.exclusive_mega_golisopod(tuple(candidates)))
         candidates[1]=evolve.SetBlock(fake_set("Salamence","Focus Sash"))
         self.assertTrue(evolve.exclusive_mega_golisopod(tuple(candidates)))
+        eviolite=list(candidates)
+        eviolite[2]=evolve.SetBlock(fake_set("Rillaboom","Eviolite"))
+        self.assertTrue(evolve.exclusive_mega_golisopod(tuple(eviolite)))
         for extra_item in ("Tyranitarite","Raichunite X","Garchompite Z"):
             adjusted=list(candidates)
             adjusted[2]=evolve.SetBlock(fake_set("Rillaboom",extra_item))
