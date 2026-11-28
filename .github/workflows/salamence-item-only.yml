@@ -1,0 +1,93 @@
+name: Poképrotocol Salamence item-only sand audit
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_salamence_item_only.py'
+      - 'tests/test_salamence_item_only.py'
+      - '.github/workflows/salamence-item-only.yml'
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sash-sand-${{ github.event_name }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL SASH SAND'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check item-only and sand-event regression tests
+        run: |
+          python -m py_compile scripts/audit_salamence_item_only.py
+          python -m unittest discover -s tests -p 'test_salamence_item_only.py' -v
+  test-moves:
+    needs: tests
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.title, 'POKEPROTOCOL SASH SAND'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install versioned weather-aware M-C engine
+        run: |
+          git clone https://github.com/joshuamatalon/champions-lab.git champions-lab
+          git -C champions-lab checkout 09d59984631dd2a45fb21700970c65ee24cf7d0f
+          cd champions-lab
+          npm ci --no-audit --no-fund
+          git clone https://github.com/smogon/damage-calc.git vendor/damage-calc
+          git -C vendor/damage-calc checkout e7fd7e59f3eef7ea42fba3c8b83261cb4a14109d
+          npm install --prefix vendor/damage-calc --ignore-scripts --no-audit --no-fund
+          npm run vendor
+          cd ..
+          test -s data/field-recent.json || (echo 'Missing validated M-C field' && exit 1)
+          cp data/field-recent.json champions-lab/data/field.json
+          python scripts/install_weather_preview.py --manifest reports/evolution/weather-preview-policy.json
+      - name: Compare only Salamence items with targeted sand logs and reserved holdout
+        run: python scripts/audit_salamence_item_only.py
+      - name: Upload full comparison and Showdown winning set
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sash-sand-${{ github.run_id }}
+          path: reports/salamence-item-only/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Comment result on Issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -s reports/salamence-item-only/summary.md ]; then
+            gh issue comment "$ISSUE_NUMBER" --body-file reports/salamence-item-only/summary.md
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "Item-only sand-sash audit failed; see $RUN_URL"
+          fi
