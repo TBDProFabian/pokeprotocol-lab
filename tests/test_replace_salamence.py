@@ -26,6 +26,12 @@ class ReplaceTests(unittest.TestCase):
             team=parse_team(audit.variant(audit.TEAM.read_text(),name))
             self.assertEqual(len(team),6)
             self.assertEqual(len(set(p.species for p in team)),6)
+    def test_all_candidates_obey_item_clause(self):
+        original=audit.TEAM.read_text(encoding="utf8")
+        for name in audit.SETS:
+            team=parse_team(audit.variant(original,name))
+            self.assertEqual(len(set(p.item for p in team)),6,name)
+
     def test_reference_never_eligible(self):
         self.assertNotIn(audit.REFERENCE,[n for n in audit.SETS if n != audit.REFERENCE])
         self.assertNotIn(audit.BASELINE,audit.SETS)
